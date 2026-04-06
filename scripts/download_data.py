@@ -8,7 +8,6 @@ from src.config import settings
 from src.ingest.hf_loader import download_dataset
 from src.store.db import (
     connect,
-    init_schema,
     load_markets_parquet,
     load_trades_parquet,
 )
@@ -63,7 +62,6 @@ def main() -> None:
     # Step 2: Load into DuckDB
     print("=== Step 2: Loading into DuckDB ===")
     con = connect()
-    init_schema(con)
 
     print("  Loading markets...")
     t0 = time.monotonic()
