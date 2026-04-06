@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     max_markets: int = 100
 
     # HuggingFace
-    hf_dataset: str = "polymarket/market-data"
+    hf_dataset: str = "SII-WANGZJ/Polymarket_data"
 
 
 settings = Settings()
