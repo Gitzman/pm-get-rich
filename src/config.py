@@ -11,8 +11,8 @@ class Settings(BaseSettings):
     duckdb_path: Path = Path("data/pmgetrich.duckdb")
 
     # Model settings
-    chronos_model: str = "amazon/chronos-t5-small"
-    device: str = "cpu"
+    chronos_model: str = "amazon/chronos-2"
+    device: str = "cuda"
 
     # Divergence thresholds
     divergence_threshold: float = 0.05
