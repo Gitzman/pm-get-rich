@@ -1,0 +1,26 @@
+[project]
+name = "pmgetrich"
+version = "0.1.0"
+description = "Chronos 2 time series forecasting on Polymarket prediction market data"
+requires-python = ">=3.11"
+dependencies = [
+    "chronos-forecasting",
+    "polars",
+    "duckdb",
+    "pydantic-settings",
+    "huggingface-hub",
+    "httpx",
+]
+
+[project.scripts]
+download-data = "scripts.download_data:main"
+run-backtest = "scripts.run_backtest:main"
+scan-signals = "scripts.scan_signals:main"
+scan-whales = "scripts.scan_whales:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
