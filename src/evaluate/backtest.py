@@ -73,7 +73,11 @@ class BacktestRunner:
         """Select resolved markets with sufficient price history."""
         rows = self._con.execute(
             """
-            SELECT m.*, t.datapoints
+            SELECT m.*,
+                   ROUND(CAST(
+                       json_extract_string(m.outcome_prices, '$[0]') AS DOUBLE
+                   )) AS outcome,
+                   t.datapoints
             FROM markets m
             JOIN (
                 SELECT market_id, count(*) as datapoints
@@ -81,7 +85,9 @@ class BacktestRunner:
                 GROUP BY market_id
                 HAVING count(*) >= ?
             ) t ON m.id = t.market_id
-            WHERE m.closed = true AND m.outcome IS NOT NULL
+            WHERE m.closed = 1
+              AND m.outcome_prices IS NOT NULL
+              AND m.outcome_prices != ''
             ORDER BY t.datapoints DESC
             LIMIT ?
             """,

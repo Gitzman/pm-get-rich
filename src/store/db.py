@@ -79,10 +79,22 @@ def load_trades_parquet(
 
 
 def get_resolved_markets(con: duckdb.DuckDBPyConnection) -> list[dict]:
-    """Return all markets that have been resolved (closed with an outcome)."""
+    """Return all markets that have been resolved (closed with an outcome).
+
+    The HF Polymarket dataset stores ``closed`` as UTINYINT (0/1) and has no
+    ``outcome`` column.  Resolution is encoded in ``outcome_prices``, a JSON
+    string like ``'["1","0"]'``.  The first element is the YES-token payout, so
+    rounding it gives a binary 1 (YES) or 0 (NO) outcome.
+    """
     rows = con.execute("""
-        SELECT * FROM markets
-        WHERE closed = true AND outcome IS NOT NULL
+        SELECT *,
+               ROUND(CAST(
+                   json_extract_string(outcome_prices, '$[0]') AS DOUBLE
+               )) AS outcome
+        FROM markets
+        WHERE closed = 1
+          AND outcome_prices IS NOT NULL
+          AND outcome_prices != ''
         ORDER BY end_date DESC
     """).fetchall()
     columns = [desc[0] for desc in con.description]
@@ -94,7 +106,7 @@ def get_price_series(
 ) -> list[dict]:
     """Return the price time series for a specific market."""
     rows = con.execute("""
-        SELECT timestamp, price, volume
+        SELECT timestamp, price, usd_amount AS volume
         FROM trades
         WHERE market_id = ?
         ORDER BY timestamp ASC
