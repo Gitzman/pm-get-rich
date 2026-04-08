@@ -259,8 +259,16 @@ class WhaleBacktester:
             [cutoff],
         ).fetchall()
 
-        cols = [d[0] for d in self._con.description]
-        profiles = [WhaleProfile(**dict(zip(cols, r))) for r in rows]
+        profiles = [
+            WhaleProfile(
+                address=r[0],
+                n_markets=r[1],
+                total_pnl=float(r[2]) if r[2] is not None else 0.0,
+                total_wagered=float(r[3]) if r[3] is not None else 0.0,
+                roi=float(r[4]) if r[4] is not None else 0.0,
+            )
+            for r in rows
+        ]
         return profiles[:top_n], profiles[-bottom_n:]
 
     # -- simulation ---------------------------------------------------------
