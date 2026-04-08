@@ -18,6 +18,7 @@ download-data = "scripts.download_data:main"
 run-backtest = "scripts.run_backtest:main"
 scan-signals = "scripts.scan_signals:main"
 scan-whales = "scripts.scan_whales:main"
+backtest-whales = "scripts.backtest_whales:main"
 
 [build-system]
 requires = ["hatchling"]
