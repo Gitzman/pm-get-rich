@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PM Get Rich - Data Explorer</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace;
+            background: #1a1a2e;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+        header {
+            background: #16213e;
+            padding: 1rem;
+            border-bottom: 2px solid #0f3460;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header h1 { font-size: 1.2rem; color: #53dba1; }
+        header .subtitle { font-size: 0.8rem; color: #888; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 1rem; }
+
+        #status {
+            background: #16213e;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            font-size: 0.85rem;
+        }
+        #status.loading { border-left: 3px solid #f0a500; }
+        #status.ready { border-left: 3px solid #53dba1; }
+        #status.error { border-left: 3px solid #e74c3c; }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+        .card {
+            background: #16213e;
+            border-radius: 8px;
+            padding: 1rem;
+            border: 1px solid #0f3460;
+        }
+        .card .label { font-size: 0.7rem; color: #888; text-transform: uppercase; letter-spacing: 0.05em; }
+        .card .value { font-size: 1.4rem; color: #53dba1; font-weight: bold; margin-top: 0.25rem; }
+
+        .queries { margin-bottom: 1rem; display: flex; flex-wrap: wrap; gap: 0.3rem; }
+        .queries button {
+            background: #0f3460;
+            color: #e0e0e0;
+            border: 1px solid #1a5276;
+            padding: 0.5rem 0.75rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .queries button:hover { background: #1a5276; }
+        .queries button:active { background: #245c8a; }
+
+        .console { margin-bottom: 1rem; }
+        .console textarea {
+            width: 100%;
+            min-height: 80px;
+            background: #0d1117;
+            color: #53dba1;
+            border: 1px solid #0f3460;
+            border-radius: 6px;
+            padding: 0.75rem;
+            font-family: 'Fira Code', 'Cascadia Code', 'Courier New', monospace;
+            font-size: 0.85rem;
+            resize: vertical;
+        }
+        .console .actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            align-items: center;
+        }
+        #run-btn {
+            background: #53dba1;
+            color: #1a1a2e;
+            border: none;
+            padding: 0.5rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        #run-btn:hover { background: #3bc88a; }
+        #run-btn:disabled { background: #555; cursor: not-allowed; }
+        .console .hint { font-size: 0.7rem; color: #555; }
+
+        .results { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .results table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+        }
+        .results th {
+            background: #0f3460;
+            padding: 0.5rem;
+            text-align: left;
+            position: sticky;
+            top: 0;
+            white-space: nowrap;
+            z-index: 1;
+        }
+        .results td {
+            padding: 0.4rem 0.5rem;
+            border-bottom: 1px solid #1a2744;
+            white-space: nowrap;
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .results tr:hover { background: rgba(83, 219, 161, 0.05); }
+        .results .meta {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 0.5rem;
+            padding: 0.25rem 0;
+        }
+        .null { color: #555; font-style: italic; }
+        .num-pos { color: #4CAF50; }
+        .num-neg { color: #F44336; }
+
+        @media (max-width: 600px) {
+            .dashboard { grid-template-columns: repeat(2, 1fr); }
+            .card .value { font-size: 1.1rem; }
+            .console textarea { min-height: 60px; font-size: 0.8rem; }
+            .queries button { padding: 0.4rem 0.6rem; font-size: 0.75rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <h1>PM Get Rich</h1>
+            <div class="subtitle">Weather Market Data Explorer</div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div id="status" class="loading">Initializing DuckDB-WASM...</div>
+
+        <div class="dashboard" id="dashboard">
+            <div class="card"><div class="label">Weather Markets</div><div class="value" id="stat-markets">-</div></div>
+            <div class="card"><div class="label">Resolved</div><div class="value" id="stat-resolved">-</div></div>
+            <div class="card"><div class="label">Total Volume</div><div class="value" id="stat-volume">-</div></div>
+            <div class="card"><div class="label">Tracked Traders</div><div class="value" id="stat-traders">-</div></div>
+        </div>
+
+        <div class="queries">
+            <button onclick="runPreset('top_whales')">Top Whales</button>
+            <button onclick="runPreset('worst_traders')">Worst Traders</button>
+            <button onclick="runPreset('recent_markets')">Recent Markets</button>
+            <button onclick="runPreset('volume_by_month')">Volume/Month</button>
+            <button onclick="runPreset('market_outcomes')">Outcomes</button>
+            <button onclick="runPreset('high_volume')">High Volume</button>
+        </div>
+
+        <div class="console">
+            <textarea id="sql" spellcheck="false">SELECT * FROM weather_resolved ORDER BY end_date DESC LIMIT 20</textarea>
+            <div class="actions">
+                <button id="run-btn" onclick="runQuery()" disabled>Run</button>
+                <span class="hint">Ctrl+Enter to run | Tables: weather_resolved, weather_markets, whale_leaderboard</span>
+            </div>
+        </div>
+
+        <div class="results" id="results"></div>
+    </div>
+
+    <script type="module">
+        import * as duckdb from 'https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@1.29.0/+esm';
+
+        let conn = null;
+        const statusEl = document.getElementById('status');
+        const sqlEl = document.getElementById('sql');
+        const runBtn = document.getElementById('run-btn');
+
+        const PRESETS = {
+            top_whales: `SELECT
+    address,
+    n_markets,
+    round(total_pnl, 2) AS total_pnl,
+    round(total_wagered, 2) AS total_wagered,
+    round(roi * 100, 2) AS roi_pct
+FROM whale_leaderboard
+ORDER BY total_pnl DESC
+LIMIT 30`,
+
+            worst_traders: `SELECT
+    address,
+    n_markets,
+    round(total_pnl, 2) AS total_pnl,
+    round(total_wagered, 2) AS total_wagered,
+    round(roi * 100, 2) AS roi_pct
+FROM whale_leaderboard
+ORDER BY total_pnl ASC
+LIMIT 30`,
+
+            recent_markets: `SELECT
+    question,
+    round(volume, 2) AS volume,
+    CASE WHEN outcome = 1 THEN 'YES' WHEN outcome = 0 THEN 'NO' ELSE '?' END AS result,
+    strftime(end_date, '%Y-%m-%d') AS ended
+FROM weather_resolved
+ORDER BY end_date DESC
+LIMIT 50`,
+
+            volume_by_month: `SELECT
+    strftime(end_date, '%Y-%m') AS month,
+    count(*) AS markets,
+    round(sum(volume)) AS total_volume,
+    round(avg(volume)) AS avg_volume
+FROM weather_resolved
+GROUP BY month
+ORDER BY month DESC`,
+
+            market_outcomes: `SELECT
+    CASE WHEN outcome = 1 THEN 'YES' WHEN outcome = 0 THEN 'NO' ELSE 'Unknown' END AS result,
+    count(*) AS n,
+    round(avg(volume), 2) AS avg_volume,
+    round(sum(volume)) AS total_volume
+FROM weather_resolved
+GROUP BY result
+ORDER BY n DESC`,
+
+            high_volume: `SELECT
+    question,
+    round(volume, 2) AS volume,
+    CASE WHEN outcome = 1 THEN 'YES' WHEN outcome = 0 THEN 'NO' ELSE '?' END AS result,
+    strftime(end_date, '%Y-%m-%d') AS ended
+FROM weather_resolved
+WHERE volume > 1000
+ORDER BY volume DESC
+LIMIT 50`
+        };
+
+        function fmtVal(val) {
+            if (val === null || val === undefined) return '<span class="null">null</span>';
+            if (typeof val === 'bigint') return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            if (typeof val === 'number') {
+                if (Number.isNaN(val)) return '<span class="null">NaN</span>';
+                const s = Number.isInteger(val) ? val.toLocaleString() : val.toFixed(4);
+                if (val > 0 && !Number.isInteger(val)) return `<span class="num-pos">${s}</span>`;
+                if (val < 0) return `<span class="num-neg">${s}</span>`;
+                return s;
+            }
+            if (val instanceof Date) return val.toISOString().slice(0, 19);
+            const s = String(val);
+            return s.length > 120 ? s.slice(0, 117) + '...' : s;
+        }
+
+        function renderTable(result) {
+            const fields = result.schema.fields.map(f => f.name);
+            const rows = result.toArray();
+            if (rows.length === 0) return '';
+
+            let html = '<table><thead><tr>';
+            for (const f of fields) html += `<th>${f}</th>`;
+            html += '</tr></thead><tbody>';
+
+            const limit = Math.min(rows.length, 500);
+            for (let i = 0; i < limit; i++) {
+                const row = rows[i];
+                html += '<tr>';
+                for (const f of fields) html += `<td>${fmtVal(row[f])}</td>`;
+                html += '</tr>';
+            }
+            html += '</tbody></table>';
+            if (rows.length > 500) html += `<div class="meta">Showing 500 of ${rows.length} rows</div>`;
+            return html;
+        }
+
+        async function init() {
+            try {
+                statusEl.textContent = 'Loading DuckDB-WASM...';
+                const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles();
+                const bundle = await duckdb.selectBundle(JSDELIVR_BUNDLES);
+
+                const workerUrl = URL.createObjectURL(
+                    new Blob([`importScripts("${bundle.mainWorker}");`], { type: 'text/javascript' })
+                );
+                const worker = new Worker(workerUrl);
+                const logger = new duckdb.ConsoleLogger();
+                const db = new duckdb.AsyncDuckDB(logger, worker);
+                await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
+                conn = await db.connect();
+                URL.revokeObjectURL(workerUrl);
+
+                statusEl.textContent = 'Loading data files...';
+                const tables = ['weather_resolved', 'weather_markets', 'whale_leaderboard'];
+                const loaded = [];
+                for (const t of tables) {
+                    try {
+                        await db.registerFileURL(
+                            `${t}.parquet`, `data/${t}.parquet`,
+                            duckdb.DuckDBDataProtocol.HTTP, false
+                        );
+                        await conn.query(`CREATE TABLE ${t} AS SELECT * FROM read_parquet('${t}.parquet')`);
+                        loaded.push(t);
+                    } catch (e) {
+                        console.warn(`Skipped ${t}: ${e.message}`);
+                    }
+                }
+
+                statusEl.textContent = `Ready (${loaded.length} tables loaded)`;
+                statusEl.className = 'ready';
+                runBtn.disabled = false;
+                await loadDashboard();
+            } catch (e) {
+                statusEl.textContent = `Error: ${e.message}`;
+                statusEl.className = 'error';
+                console.error('Init failed:', e);
+            }
+        }
+
+        async function loadDashboard() {
+            const queries = [
+                ['stat-markets', `SELECT count(*)::INT AS v FROM weather_markets`],
+                ['stat-resolved', `SELECT count(*)::INT AS v FROM weather_resolved`],
+                ['stat-volume', `SELECT '$' || round(sum(volume)/1e6, 1)::VARCHAR || 'M' AS v FROM weather_resolved`],
+                ['stat-traders', `SELECT count(*)::INT AS v FROM whale_leaderboard`],
+            ];
+            for (const [id, sql] of queries) {
+                try {
+                    const r = await conn.query(sql);
+                    const row = r.toArray()[0];
+                    if (row) document.getElementById(id).textContent = row.v;
+                } catch (e) { console.warn(`Dashboard ${id}:`, e.message); }
+            }
+        }
+
+        window.runQuery = async function() {
+            const sql = sqlEl.value.trim();
+            if (!sql || !conn) return;
+
+            const resultsEl = document.getElementById('results');
+            resultsEl.innerHTML = '<div class="meta">Running...</div>';
+            runBtn.disabled = true;
+
+            try {
+                const t0 = performance.now();
+                const result = await conn.query(sql);
+                const elapsed = ((performance.now() - t0) / 1000).toFixed(2);
+                const rows = result.toArray();
+                let html = renderTable(result);
+                html += `<div class="meta">${rows.length} row${rows.length !== 1 ? 's' : ''} (${elapsed}s)</div>`;
+                resultsEl.innerHTML = html;
+            } catch (e) {
+                resultsEl.innerHTML = `<div style="color: #e74c3c; padding: 0.5rem;">${e.message}</div>`;
+            } finally {
+                runBtn.disabled = false;
+            }
+        };
+
+        window.runPreset = function(name) {
+            if (!PRESETS[name]) return;
+            sqlEl.value = PRESETS[name];
+            runQuery();
+        };
+
+        sqlEl.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                runQuery();
+            }
+        });
+
+        init();
+    </script>
+</body>
+</html>
