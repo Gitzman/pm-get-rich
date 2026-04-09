@@ -13,6 +13,7 @@ dependencies = [
     "httpx",
     "pytz>=2026.1.post1",
     "matplotlib",
+    "pyarrow>=23.0.1",
 ]
 
 [project.scripts]
@@ -22,6 +23,8 @@ scan-signals = "scripts.scan_signals:main"
 scan-whales = "scripts.scan_whales:main"
 backtest-whales = "scripts.backtest_whales:main"
 viz-whale-backtest = "scripts.viz_whale_backtest:main"
+normalize-events = "scripts.normalize_events:main"
+sanity-check-events = "scripts.sanity_check_events:main"
 
 [build-system]
 requires = ["hatchling"]
