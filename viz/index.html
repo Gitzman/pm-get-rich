@@ -300,10 +300,10 @@ LIMIT 50`
                 const loaded = [];
                 for (const t of tables) {
                     try {
-                        await db.registerFileURL(
-                            `${t}.parquet`, `data/${t}.parquet`,
-                            duckdb.DuckDBDataProtocol.HTTP, false
-                        );
+                        const resp = await fetch(`data/${t}.parquet`);
+                        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                        const buf = await resp.arrayBuffer();
+                        await db.registerFileBuffer(`${t}.parquet`, new Uint8Array(buf));
                         await conn.query(`CREATE TABLE ${t} AS SELECT * FROM read_parquet('${t}.parquet')`);
                         loaded.push(t);
                     } catch (e) {
