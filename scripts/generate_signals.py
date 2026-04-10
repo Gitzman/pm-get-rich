@@ -20,7 +20,6 @@ from __future__ import annotations
 
 import argparse
 import io
-import json
 import sys
 import time
 from contextlib import redirect_stdout
