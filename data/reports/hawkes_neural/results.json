@@ -1,0 +1,284 @@
+{
+  "event_id": "295980",
+  "event_title": "Highest temperature in Seoul on March 26",
+  "model": "neural_hawkes_ct_lstm",
+  "architecture": "Mei & Eisner (2017) continuous-time LSTM",
+  "hidden_dim": 64,
+  "embed_dim": 32,
+  "n_parameters": 42130,
+  "dimensions": 50,
+  "n_train": 5569,
+  "n_test": 1393,
+  "training": {
+    "epochs": 400,
+    "lr": 0.001,
+    "chunk_size": 512,
+    "mc_samples": 20,
+    "patience": 50,
+    "final_train_nll_per_event": 2.554392374360298,
+    "best_train_nll_per_event": 2.5471464086208253,
+    "training_time_seconds": 1670.5103344917297
+  },
+  "metrics": {
+    "held_out_avg_log_likelihood": -4.856372251601778,
+    "held_out_ll_std": 0.004212251600317308,
+    "classical_baseline_ll": -5.473,
+    "beats_baseline": true
+  },
+  "gpu": {
+    "name": "NVIDIA GeForce RTX 3060",
+    "peak_vram_mb": 34.477056
+  },
+  "dimension_labels": [
+    {
+      "idx": 0,
+      "wallet": "0x39fd921a",
+      "suit": "9C"
+    },
+    {
+      "idx": 1,
+      "wallet": "0x39fd921a",
+      "suit": "14C"
+    },
+    {
+      "idx": 2,
+      "wallet": "0x39fd921a",
+      "suit": ">=16C"
+    },
+    {
+      "idx": 3,
+      "wallet": "0x39fd921a",
+      "suit": "13C"
+    },
+    {
+      "idx": 4,
+      "wallet": "0x39fd921a",
+      "suit": "11C"
+    },
+    {
+      "idx": 5,
+      "wallet": "0x39fd921a",
+      "suit": "12C"
+    },
+    {
+      "idx": 6,
+      "wallet": "0x39fd921a",
+      "suit": "10C"
+    },
+    {
+      "idx": 7,
+      "wallet": "0x39fd921a",
+      "suit": "15C"
+    },
+    {
+      "idx": 8,
+      "wallet": "0x6Aa2D339",
+      "suit": "9C"
+    },
+    {
+      "idx": 9,
+      "wallet": "0x5EA76651",
+      "suit": "11C"
+    },
+    {
+      "idx": 10,
+      "wallet": "0x5EA76651",
+      "suit": "13C"
+    },
+    {
+      "idx": 11,
+      "wallet": "0x39fd921a",
+      "suit": "8C"
+    },
+    {
+      "idx": 12,
+      "wallet": "0x5EA76651",
+      "suit": "12C"
+    },
+    {
+      "idx": 13,
+      "wallet": "0x39fd921a",
+      "suit": "7C"
+    },
+    {
+      "idx": 14,
+      "wallet": "0x5EA76651",
+      "suit": "14C"
+    },
+    {
+      "idx": 15,
+      "wallet": "0x5EA76651",
+      "suit": ">=16C"
+    },
+    {
+      "idx": 16,
+      "wallet": "0x5EA76651",
+      "suit": "10C"
+    },
+    {
+      "idx": 17,
+      "wallet": "0x5EA76651",
+      "suit": "15C"
+    },
+    {
+      "idx": 18,
+      "wallet": "0x5EA76651",
+      "suit": "9C"
+    },
+    {
+      "idx": 19,
+      "wallet": "0xA708513f",
+      "suit": "12C"
+    },
+    {
+      "idx": 20,
+      "wallet": "0xA708513f",
+      "suit": "13C"
+    },
+    {
+      "idx": 21,
+      "wallet": "0xA708513f",
+      "suit": "11C"
+    },
+    {
+      "idx": 22,
+      "wallet": "0xe3726A1b",
+      "suit": "14C"
+    },
+    {
+      "idx": 23,
+      "wallet": "0xe3726A1b",
+      "suit": "10C"
+    },
+    {
+      "idx": 24,
+      "wallet": "0xA708513f",
+      "suit": "14C"
+    },
+    {
+      "idx": 25,
+      "wallet": "0xe3726A1b",
+      "suit": "11C"
+    },
+    {
+      "idx": 26,
+      "wallet": "0xe3726A1b",
+      "suit": "8C"
+    },
+    {
+      "idx": 27,
+      "wallet": "0xe3726A1b",
+      "suit": "12C"
+    },
+    {
+      "idx": 28,
+      "wallet": "0xe3726A1b",
+      "suit": "15C"
+    },
+    {
+      "idx": 29,
+      "wallet": "0xe3726A1b",
+      "suit": "7C"
+    },
+    {
+      "idx": 30,
+      "wallet": "0xA708513f",
+      "suit": "10C"
+    },
+    {
+      "idx": 31,
+      "wallet": "0xA708513f",
+      "suit": ">=16C"
+    },
+    {
+      "idx": 32,
+      "wallet": "0xe3726A1b",
+      "suit": "9C"
+    },
+    {
+      "idx": 33,
+      "wallet": "0xe3726A1b",
+      "suit": "13C"
+    },
+    {
+      "idx": 34,
+      "wallet": "0xe3726A1b",
+      "suit": ">=16C"
+    },
+    {
+      "idx": 35,
+      "wallet": "0x41743af6",
+      "suit": "12C"
+    },
+    {
+      "idx": 36,
+      "wallet": "0xA708513f",
+      "suit": "15C"
+    },
+    {
+      "idx": 37,
+      "wallet": "0x41743af6",
+      "suit": "11C"
+    },
+    {
+      "idx": 38,
+      "wallet": "0x85Bd6A67",
+      "suit": "9C"
+    },
+    {
+      "idx": 39,
+      "wallet": "0xF4E2737a",
+      "suit": "10C"
+    },
+    {
+      "idx": 40,
+      "wallet": "0x41743af6",
+      "suit": "10C"
+    },
+    {
+      "idx": 41,
+      "wallet": "0xa49801fd",
+      "suit": ">=16C"
+    },
+    {
+      "idx": 42,
+      "wallet": "0x41743af6",
+      "suit": "13C"
+    },
+    {
+      "idx": 43,
+      "wallet": "0xe3726A1b",
+      "suit": "<=6C"
+    },
+    {
+      "idx": 44,
+      "wallet": "0x41743af6",
+      "suit": "14C"
+    },
+    {
+      "idx": 45,
+      "wallet": "0x6529bf80",
+      "suit": "10C"
+    },
+    {
+      "idx": 46,
+      "wallet": "0x41743af6",
+      "suit": ">=16C"
+    },
+    {
+      "idx": 47,
+      "wallet": "0x0A188a70",
+      "suit": "7C"
+    },
+    {
+      "idx": 48,
+      "wallet": "0x0E7Fa09b",
+      "suit": "12C"
+    },
+    {
+      "idx": 49,
+      "wallet": "0xA708513f",
+      "suit": "9C"
+    }
+  ]
+}
