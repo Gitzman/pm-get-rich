@@ -26,12 +26,12 @@ def fit_one(event_id: str, gpu: int) -> tuple[str, bool, float, str]:
     results_path = Path(f"{out}/results.json")
 
     # Skip if neural results already exist
-    if results_path.exists():
-        with open(results_path) as f:
+    neural_results_path = Path(f"{out}/neural_results.json")
+    if neural_results_path.exists():
+        with open(neural_results_path) as f:
             d = json.load(f)
-        if d.get("model") == "neural_hawkes_ct_lstm":
-            ll = d.get("metrics", {}).get("held_out_avg_log_likelihood", 0)
-            return event_id, True, 0.0, f"already done (LL={ll:.4f})"
+        ll = d.get("metrics", {}).get("held_out_avg_log_likelihood", 0)
+        return event_id, True, 0.0, f"already done (LL={ll:.4f})"
 
     # Check if normalized data exists
     if not Path(parquet).exists():
@@ -51,6 +51,15 @@ def fit_one(event_id: str, gpu: int) -> tuple[str, bool, float, str]:
     if result.returncode == 0 and results_path.exists():
         with open(results_path) as f:
             d = json.load(f)
+        # Save as neural_results.json to avoid overwriting classical
+        neural_path = Path(f"{out}/neural_results.json")
+        with open(neural_path, "w") as f:
+            json.dump(d, f, indent=2)
+        # Restore classical_results.json as results.json if it exists
+        classical_path = Path(f"{out}/classical_results.json")
+        if classical_path.exists():
+            import shutil
+            shutil.copy2(str(classical_path), str(results_path))
         ll = d.get("metrics", {}).get("held_out_avg_log_likelihood", 0)
         return event_id, True, elapsed, f"LL={ll:.4f} ({elapsed:.0f}s)"
     return event_id, False, elapsed, result.stderr[-200:] if result.stderr else "unknown error"
