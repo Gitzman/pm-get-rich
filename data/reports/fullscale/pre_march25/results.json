@@ -1,0 +1,1051 @@
+{
+  "model": "cross_market_transformer_tpp",
+  "cutoff_date": "2026-03-25",
+  "architecture": {
+    "type": "Transformer TPP with entity embeddings",
+    "d_model": 128,
+    "n_heads": 4,
+    "n_layers": 4,
+    "d_ff": 256,
+    "wallet_dim": 64,
+    "context_len": 512
+  },
+  "n_parameters": 663808,
+  "data": {
+    "n_markets": 1996,
+    "n_events_total": 5645012,
+    "n_train": 4516009,
+    "n_test": 1129003,
+    "n_wallets_vocab": 501,
+    "n_cities": 35,
+    "cities": [
+      "Atlanta",
+      "Seattle",
+      "Dallas",
+      "Buenos Aires",
+      "Seoul",
+      "Toronto",
+      "NYC",
+      "London",
+      "Miami",
+      "Chicago",
+      "Ankara",
+      "Wellington",
+      "Sao Paulo",
+      "Paris",
+      "Lucknow",
+      "Munich",
+      "Dubai",
+      "Tel Aviv",
+      "Tokyo",
+      "Hong Kong",
+      "Shanghai",
+      "Singapore",
+      "Milan",
+      "Madrid",
+      "Warsaw",
+      "Taipei",
+      "Chongqing",
+      "Beijing",
+      "Wuhan",
+      "Chengdu",
+      "Shenzhen",
+      "San Francisco",
+      "Los Angeles",
+      "Phoenix",
+      "Denver"
+    ]
+  },
+  "training": {
+    "epochs_run": 37,
+    "best_epoch": 10,
+    "best_val_loss": -11.639967581041816,
+    "final_train_loss": -9.524119317546603,
+    "lr": 0.0003,
+    "batch_size": 32,
+    "training_time_seconds": 491.2411916255951
+  },
+  "metrics": {
+    "global_held_out_nll": -10.504450098597477,
+    "global_held_out_ll": 10.504450098597477,
+    "wallet_nll": 3.0439904028055618,
+    "bucket_mse": 0.06103906628259726,
+    "time_nll": -13.609479567685636,
+    "n_test_events": 1128960
+  },
+  "comparison": {
+    "classical_mean_ll": null,
+    "classical_n_markets": 0,
+    "per_market": {
+      "265873": {
+        "neural_ll": 11.654638290405273,
+        "classical_ll": null,
+        "city": "Seattle"
+      },
+      "265875": {
+        "neural_ll": 11.181410789489746,
+        "classical_ll": null,
+        "city": "Dallas"
+      },
+      "265876": {
+        "neural_ll": 11.373268127441406,
+        "classical_ll": null,
+        "city": "Atlanta"
+      },
+      "265878": {
+        "neural_ll": 11.330121994018555,
+        "classical_ll": null,
+        "city": "Chicago"
+      },
+      "268916": {
+        "neural_ll": 11.857919692993164,
+        "classical_ll": null,
+        "city": "London"
+      },
+      "268922": {
+        "neural_ll": 11.173149108886719,
+        "classical_ll": null,
+        "city": "Paris"
+      },
+      "268924": {
+        "neural_ll": 11.165416717529297,
+        "classical_ll": null,
+        "city": "Sao Paulo"
+      },
+      "268926": {
+        "neural_ll": 11.725886344909668,
+        "classical_ll": null,
+        "city": "Buenos Aires"
+      },
+      "268928": {
+        "neural_ll": 11.930654525756836,
+        "classical_ll": null,
+        "city": "Seoul"
+      },
+      "268930": {
+        "neural_ll": 10.503888130187988,
+        "classical_ll": null,
+        "city": "Toronto"
+      },
+      "268932": {
+        "neural_ll": 11.179670333862305,
+        "classical_ll": null,
+        "city": "Seattle"
+      },
+      "268933": {
+        "neural_ll": 11.367423057556152,
+        "classical_ll": null,
+        "city": "NYC"
+      },
+      "268934": {
+        "neural_ll": 10.857101440429688,
+        "classical_ll": null,
+        "city": "Dallas"
+      },
+      "268935": {
+        "neural_ll": 11.564851760864258,
+        "classical_ll": null,
+        "city": "Atlanta"
+      },
+      "268936": {
+        "neural_ll": 11.164302825927734,
+        "classical_ll": null,
+        "city": "Miami"
+      },
+      "268937": {
+        "neural_ll": 9.751556396484375,
+        "classical_ll": null,
+        "city": "Chicago"
+      },
+      "268938": {
+        "neural_ll": 11.901123046875,
+        "classical_ll": null,
+        "city": "Ankara"
+      },
+      "268939": {
+        "neural_ll": 11.212489128112793,
+        "classical_ll": null,
+        "city": "Wellington"
+      },
+      "268940": {
+        "neural_ll": 11.281518936157227,
+        "classical_ll": null,
+        "city": "Lucknow"
+      },
+      "268941": {
+        "neural_ll": 10.233894348144531,
+        "classical_ll": null,
+        "city": "Munich"
+      },
+      "268942": {
+        "neural_ll": 10.120645523071289,
+        "classical_ll": null,
+        "city": "Tel Aviv"
+      },
+      "268943": {
+        "neural_ll": 11.181303977966309,
+        "classical_ll": null,
+        "city": "Tokyo"
+      },
+      "268944": {
+        "neural_ll": 11.149942398071289,
+        "classical_ll": null,
+        "city": "Shanghai"
+      },
+      "268945": {
+        "neural_ll": 11.187716484069824,
+        "classical_ll": null,
+        "city": "Singapore"
+      },
+      "272220": {
+        "neural_ll": 11.641963958740234,
+        "classical_ll": null,
+        "city": "London"
+      },
+      "272228": {
+        "neural_ll": 11.141951560974121,
+        "classical_ll": null,
+        "city": "Paris"
+      },
+      "272233": {
+        "neural_ll": 10.398651123046875,
+        "classical_ll": null,
+        "city": "Sao Paulo"
+      },
+      "272237": {
+        "neural_ll": 11.702461242675781,
+        "classical_ll": null,
+        "city": "Buenos Aires"
+      },
+      "272241": {
+        "neural_ll": 10.48798656463623,
+        "classical_ll": null,
+        "city": "Seoul"
+      },
+      "272245": {
+        "neural_ll": 10.126262664794922,
+        "classical_ll": null,
+        "city": "Toronto"
+      },
+      "272247": {
+        "neural_ll": 11.201925277709961,
+        "classical_ll": null,
+        "city": "Seattle"
+      },
+      "272248": {
+        "neural_ll": 10.878402709960938,
+        "classical_ll": null,
+        "city": "NYC"
+      },
+      "272249": {
+        "neural_ll": 10.933560371398926,
+        "classical_ll": null,
+        "city": "Dallas"
+      },
+      "272250": {
+        "neural_ll": 9.73289966583252,
+        "classical_ll": null,
+        "city": "Atlanta"
+      },
+      "272251": {
+        "neural_ll": 9.97423267364502,
+        "classical_ll": null,
+        "city": "Miami"
+      },
+      "272252": {
+        "neural_ll": 11.312359809875488,
+        "classical_ll": null,
+        "city": "Chicago"
+      },
+      "272253": {
+        "neural_ll": 10.235710144042969,
+        "classical_ll": null,
+        "city": "Ankara"
+      },
+      "272254": {
+        "neural_ll": 9.80217170715332,
+        "classical_ll": null,
+        "city": "Wellington"
+      },
+      "272255": {
+        "neural_ll": 11.605567932128906,
+        "classical_ll": null,
+        "city": "Lucknow"
+      },
+      "272256": {
+        "neural_ll": 10.337028503417969,
+        "classical_ll": null,
+        "city": "Munich"
+      },
+      "272257": {
+        "neural_ll": 11.42894458770752,
+        "classical_ll": null,
+        "city": "Tel Aviv"
+      },
+      "272258": {
+        "neural_ll": 11.377104759216309,
+        "classical_ll": null,
+        "city": "Tokyo"
+      },
+      "272259": {
+        "neural_ll": 11.93314266204834,
+        "classical_ll": null,
+        "city": "Shanghai"
+      },
+      "272260": {
+        "neural_ll": 10.122485160827637,
+        "classical_ll": null,
+        "city": "Singapore"
+      },
+      "275636": {
+        "neural_ll": 10.825047492980957,
+        "classical_ll": null,
+        "city": "London"
+      },
+      "275638": {
+        "neural_ll": 10.304659843444824,
+        "classical_ll": null,
+        "city": "Paris"
+      },
+      "275640": {
+        "neural_ll": 10.056163787841797,
+        "classical_ll": null,
+        "city": "Sao Paulo"
+      },
+      "275642": {
+        "neural_ll": 10.558771133422852,
+        "classical_ll": null,
+        "city": "Buenos Aires"
+      },
+      "275644": {
+        "neural_ll": 10.157485008239746,
+        "classical_ll": null,
+        "city": "Seoul"
+      },
+      "275646": {
+        "neural_ll": 10.339225769042969,
+        "classical_ll": null,
+        "city": "Toronto"
+      },
+      "275648": {
+        "neural_ll": 10.658239364624023,
+        "classical_ll": null,
+        "city": "Seattle"
+      },
+      "275649": {
+        "neural_ll": 10.069231986999512,
+        "classical_ll": null,
+        "city": "NYC"
+      },
+      "275650": {
+        "neural_ll": 10.459980010986328,
+        "classical_ll": null,
+        "city": "Dallas"
+      },
+      "275651": {
+        "neural_ll": 11.136513710021973,
+        "classical_ll": null,
+        "city": "Atlanta"
+      },
+      "275652": {
+        "neural_ll": 10.190372467041016,
+        "classical_ll": null,
+        "city": "Miami"
+      },
+      "275653": {
+        "neural_ll": 10.65906047821045,
+        "classical_ll": null,
+        "city": "Chicago"
+      },
+      "275654": {
+        "neural_ll": 11.773561477661133,
+        "classical_ll": null,
+        "city": "Ankara"
+      },
+      "275655": {
+        "neural_ll": 11.133913040161133,
+        "classical_ll": null,
+        "city": "Wellington"
+      },
+      "275656": {
+        "neural_ll": 10.80122184753418,
+        "classical_ll": null,
+        "city": "Lucknow"
+      },
+      "275657": {
+        "neural_ll": 10.799797058105469,
+        "classical_ll": null,
+        "city": "Munich"
+      },
+      "275658": {
+        "neural_ll": 10.883451461791992,
+        "classical_ll": null,
+        "city": "Tel Aviv"
+      },
+      "275659": {
+        "neural_ll": 11.543787002563477,
+        "classical_ll": null,
+        "city": "Tokyo"
+      },
+      "275660": {
+        "neural_ll": 10.423822402954102,
+        "classical_ll": null,
+        "city": "Shanghai"
+      },
+      "275661": {
+        "neural_ll": 11.167434692382812,
+        "classical_ll": null,
+        "city": "Singapore"
+      },
+      "276872": {
+        "neural_ll": 11.590789794921875,
+        "classical_ll": null,
+        "city": "Hong Kong"
+      },
+      "276884": {
+        "neural_ll": 11.870611190795898,
+        "classical_ll": null,
+        "city": "Hong Kong"
+      },
+      "276885": {
+        "neural_ll": 11.543617248535156,
+        "classical_ll": null,
+        "city": "Milan"
+      },
+      "276886": {
+        "neural_ll": 11.171525001525879,
+        "classical_ll": null,
+        "city": "Madrid"
+      },
+      "276887": {
+        "neural_ll": 10.790931701660156,
+        "classical_ll": null,
+        "city": "Warsaw"
+      },
+      "276888": {
+        "neural_ll": 10.851043701171875,
+        "classical_ll": null,
+        "city": "Taipei"
+      },
+      "276889": {
+        "neural_ll": 11.04946517944336,
+        "classical_ll": null,
+        "city": "Hong Kong"
+      },
+      "276890": {
+        "neural_ll": 11.308499336242676,
+        "classical_ll": null,
+        "city": "Milan"
+      },
+      "276891": {
+        "neural_ll": 10.835332870483398,
+        "classical_ll": null,
+        "city": "Madrid"
+      },
+      "276892": {
+        "neural_ll": 10.146068572998047,
+        "classical_ll": null,
+        "city": "Warsaw"
+      },
+      "276893": {
+        "neural_ll": 11.545631408691406,
+        "classical_ll": null,
+        "city": "Taipei"
+      },
+      "279157": {
+        "neural_ll": 11.56682014465332,
+        "classical_ll": null,
+        "city": "London"
+      },
+      "279159": {
+        "neural_ll": 11.676188468933105,
+        "classical_ll": null,
+        "city": "Paris"
+      },
+      "279161": {
+        "neural_ll": 11.06423568725586,
+        "classical_ll": null,
+        "city": "Sao Paulo"
+      },
+      "279163": {
+        "neural_ll": 9.898758888244629,
+        "classical_ll": null,
+        "city": "Buenos Aires"
+      },
+      "279165": {
+        "neural_ll": 11.76618480682373,
+        "classical_ll": null,
+        "city": "Seoul"
+      },
+      "279167": {
+        "neural_ll": 10.047517776489258,
+        "classical_ll": null,
+        "city": "Toronto"
+      },
+      "279169": {
+        "neural_ll": 10.078155517578125,
+        "classical_ll": null,
+        "city": "Seattle"
+      },
+      "279170": {
+        "neural_ll": 11.573564529418945,
+        "classical_ll": null,
+        "city": "NYC"
+      },
+      "279171": {
+        "neural_ll": 11.315451622009277,
+        "classical_ll": null,
+        "city": "Dallas"
+      },
+      "279172": {
+        "neural_ll": 11.072576522827148,
+        "classical_ll": null,
+        "city": "Atlanta"
+      },
+      "279173": {
+        "neural_ll": 12.385254859924316,
+        "classical_ll": null,
+        "city": "Miami"
+      },
+      "279174": {
+        "neural_ll": 11.746150016784668,
+        "classical_ll": null,
+        "city": "Chicago"
+      },
+      "279175": {
+        "neural_ll": 10.591920852661133,
+        "classical_ll": null,
+        "city": "Ankara"
+      },
+      "279176": {
+        "neural_ll": 10.339631080627441,
+        "classical_ll": null,
+        "city": "Wellington"
+      },
+      "279177": {
+        "neural_ll": 11.229854583740234,
+        "classical_ll": null,
+        "city": "Lucknow"
+      },
+      "279178": {
+        "neural_ll": 10.305365562438965,
+        "classical_ll": null,
+        "city": "Munich"
+      },
+      "279179": {
+        "neural_ll": 12.264573097229004,
+        "classical_ll": null,
+        "city": "Tel Aviv"
+      },
+      "279180": {
+        "neural_ll": 11.604476928710938,
+        "classical_ll": null,
+        "city": "Tokyo"
+      },
+      "279181": {
+        "neural_ll": 11.5421142578125,
+        "classical_ll": null,
+        "city": "Hong Kong"
+      },
+      "279182": {
+        "neural_ll": 11.121566772460938,
+        "classical_ll": null,
+        "city": "Shanghai"
+      },
+      "279183": {
+        "neural_ll": 11.626174926757812,
+        "classical_ll": null,
+        "city": "Singapore"
+      },
+      "279184": {
+        "neural_ll": 12.053994178771973,
+        "classical_ll": null,
+        "city": "Milan"
+      },
+      "279185": {
+        "neural_ll": 11.057768821716309,
+        "classical_ll": null,
+        "city": "Madrid"
+      },
+      "279186": {
+        "neural_ll": 11.965900421142578,
+        "classical_ll": null,
+        "city": "Warsaw"
+      },
+      "279187": {
+        "neural_ll": 10.50323486328125,
+        "classical_ll": null,
+        "city": "Taipei"
+      },
+      "282528": {
+        "neural_ll": 9.291367530822754,
+        "classical_ll": null,
+        "city": "London"
+      },
+      "282535": {
+        "neural_ll": 11.974091529846191,
+        "classical_ll": null,
+        "city": "Paris"
+      },
+      "282537": {
+        "neural_ll": 11.111698150634766,
+        "classical_ll": null,
+        "city": "Sao Paulo"
+      },
+      "282539": {
+        "neural_ll": 11.274552345275879,
+        "classical_ll": null,
+        "city": "Buenos Aires"
+      },
+      "282541": {
+        "neural_ll": 8.9081449508667,
+        "classical_ll": null,
+        "city": "Seoul"
+      },
+      "282543": {
+        "neural_ll": 11.069929122924805,
+        "classical_ll": null,
+        "city": "Toronto"
+      },
+      "282545": {
+        "neural_ll": 10.850607872009277,
+        "classical_ll": null,
+        "city": "Seattle"
+      },
+      "282546": {
+        "neural_ll": 9.861532211303711,
+        "classical_ll": null,
+        "city": "NYC"
+      },
+      "282547": {
+        "neural_ll": 9.575124740600586,
+        "classical_ll": null,
+        "city": "Dallas"
+      },
+      "282548": {
+        "neural_ll": 11.013513565063477,
+        "classical_ll": null,
+        "city": "Atlanta"
+      },
+      "282549": {
+        "neural_ll": 10.369562149047852,
+        "classical_ll": null,
+        "city": "Miami"
+      },
+      "282550": {
+        "neural_ll": 10.12596321105957,
+        "classical_ll": null,
+        "city": "Chicago"
+      },
+      "282551": {
+        "neural_ll": 9.904441833496094,
+        "classical_ll": null,
+        "city": "Ankara"
+      },
+      "282552": {
+        "neural_ll": 9.781761169433594,
+        "classical_ll": null,
+        "city": "Wellington"
+      },
+      "282553": {
+        "neural_ll": 11.087787628173828,
+        "classical_ll": null,
+        "city": "Lucknow"
+      },
+      "282554": {
+        "neural_ll": 11.578879356384277,
+        "classical_ll": null,
+        "city": "Munich"
+      },
+      "282555": {
+        "neural_ll": 11.169734954833984,
+        "classical_ll": null,
+        "city": "Tel Aviv"
+      },
+      "282556": {
+        "neural_ll": 10.916948318481445,
+        "classical_ll": null,
+        "city": "Tokyo"
+      },
+      "282557": {
+        "neural_ll": 10.270607948303223,
+        "classical_ll": null,
+        "city": "Hong Kong"
+      },
+      "282558": {
+        "neural_ll": 11.369029998779297,
+        "classical_ll": null,
+        "city": "Shanghai"
+      },
+      "282559": {
+        "neural_ll": 9.783507347106934,
+        "classical_ll": null,
+        "city": "Singapore"
+      },
+      "282560": {
+        "neural_ll": 16.098480224609375,
+        "classical_ll": null,
+        "city": "Milan"
+      },
+      "282561": {
+        "neural_ll": 11.314986228942871,
+        "classical_ll": null,
+        "city": "Madrid"
+      },
+      "282562": {
+        "neural_ll": 14.777478218078613,
+        "classical_ll": null,
+        "city": "Warsaw"
+      },
+      "282563": {
+        "neural_ll": 12.126636505126953,
+        "classical_ll": null,
+        "city": "Taipei"
+      },
+      "285290": {
+        "neural_ll": 11.309335708618164,
+        "classical_ll": null,
+        "city": "Milan"
+      },
+      "285291": {
+        "neural_ll": 6.24785041809082,
+        "classical_ll": null,
+        "city": "Madrid"
+      },
+      "285292": {
+        "neural_ll": 11.252679824829102,
+        "classical_ll": null,
+        "city": "Warsaw"
+      },
+      "285293": {
+        "neural_ll": 11.053998947143555,
+        "classical_ll": null,
+        "city": "Taipei"
+      },
+      "285756": {
+        "neural_ll": 10.44255542755127,
+        "classical_ll": null,
+        "city": "London"
+      },
+      "285758": {
+        "neural_ll": 11.128795623779297,
+        "classical_ll": null,
+        "city": "Paris"
+      },
+      "285760": {
+        "neural_ll": 11.74461841583252,
+        "classical_ll": null,
+        "city": "Sao Paulo"
+      },
+      "285762": {
+        "neural_ll": 10.896476745605469,
+        "classical_ll": null,
+        "city": "Buenos Aires"
+      },
+      "285764": {
+        "neural_ll": 10.07101821899414,
+        "classical_ll": null,
+        "city": "Seoul"
+      },
+      "285766": {
+        "neural_ll": 10.427240371704102,
+        "classical_ll": null,
+        "city": "Toronto"
+      },
+      "285768": {
+        "neural_ll": 10.154512405395508,
+        "classical_ll": null,
+        "city": "Seattle"
+      },
+      "285769": {
+        "neural_ll": 10.091375350952148,
+        "classical_ll": null,
+        "city": "NYC"
+      },
+      "285770": {
+        "neural_ll": 11.542750358581543,
+        "classical_ll": null,
+        "city": "Dallas"
+      },
+      "285771": {
+        "neural_ll": 10.475751876831055,
+        "classical_ll": null,
+        "city": "Atlanta"
+      },
+      "285772": {
+        "neural_ll": 10.557079315185547,
+        "classical_ll": null,
+        "city": "Miami"
+      },
+      "285773": {
+        "neural_ll": 11.062129974365234,
+        "classical_ll": null,
+        "city": "Chicago"
+      },
+      "285774": {
+        "neural_ll": 10.602571487426758,
+        "classical_ll": null,
+        "city": "Ankara"
+      },
+      "285775": {
+        "neural_ll": 11.047829627990723,
+        "classical_ll": null,
+        "city": "Wellington"
+      },
+      "285776": {
+        "neural_ll": 11.027647972106934,
+        "classical_ll": null,
+        "city": "Lucknow"
+      },
+      "285777": {
+        "neural_ll": 9.920602798461914,
+        "classical_ll": null,
+        "city": "Munich"
+      },
+      "285778": {
+        "neural_ll": 11.244370460510254,
+        "classical_ll": null,
+        "city": "Tel Aviv"
+      },
+      "285779": {
+        "neural_ll": 10.276909828186035,
+        "classical_ll": null,
+        "city": "Tokyo"
+      },
+      "285780": {
+        "neural_ll": 10.895484924316406,
+        "classical_ll": null,
+        "city": "Hong Kong"
+      },
+      "285781": {
+        "neural_ll": 10.344206809997559,
+        "classical_ll": null,
+        "city": "Shanghai"
+      },
+      "285782": {
+        "neural_ll": 10.123583793640137,
+        "classical_ll": null,
+        "city": "Singapore"
+      },
+      "285783": {
+        "neural_ll": 10.171801567077637,
+        "classical_ll": null,
+        "city": "Milan"
+      },
+      "285784": {
+        "neural_ll": 12.831966400146484,
+        "classical_ll": null,
+        "city": "Madrid"
+      },
+      "285785": {
+        "neural_ll": 11.017568588256836,
+        "classical_ll": null,
+        "city": "Warsaw"
+      },
+      "285786": {
+        "neural_ll": 10.925544738769531,
+        "classical_ll": null,
+        "city": "Taipei"
+      },
+      "287675": {
+        "neural_ll": 9.894997596740723,
+        "classical_ll": null,
+        "city": "Chongqing"
+      },
+      "287676": {
+        "neural_ll": 9.873723983764648,
+        "classical_ll": null,
+        "city": "Beijing"
+      },
+      "287677": {
+        "neural_ll": 9.976420402526855,
+        "classical_ll": null,
+        "city": "Wuhan"
+      },
+      "287678": {
+        "neural_ll": 11.473592758178711,
+        "classical_ll": null,
+        "city": "Chengdu"
+      },
+      "287694": {
+        "neural_ll": 10.536008834838867,
+        "classical_ll": null,
+        "city": "Chongqing"
+      },
+      "287696": {
+        "neural_ll": 11.86263656616211,
+        "classical_ll": null,
+        "city": "Wuhan"
+      },
+      "287697": {
+        "neural_ll": 11.50778579711914,
+        "classical_ll": null,
+        "city": "Chengdu"
+      },
+      "287698": {
+        "neural_ll": 10.784605979919434,
+        "classical_ll": null,
+        "city": "Shenzhen"
+      },
+      "287699": {
+        "neural_ll": 11.108545303344727,
+        "classical_ll": null,
+        "city": "Chongqing"
+      },
+      "287701": {
+        "neural_ll": 11.500365257263184,
+        "classical_ll": null,
+        "city": "Wuhan"
+      },
+      "287710": {
+        "neural_ll": 10.700738906860352,
+        "classical_ll": null,
+        "city": "Shenzhen"
+      },
+      "287712": {
+        "neural_ll": 11.284642219543457,
+        "classical_ll": null,
+        "city": "Chongqing"
+      },
+      "287713": {
+        "neural_ll": 10.987439155578613,
+        "classical_ll": null,
+        "city": "Beijing"
+      },
+      "287714": {
+        "neural_ll": 11.229159355163574,
+        "classical_ll": null,
+        "city": "Wuhan"
+      },
+      "287732": {
+        "neural_ll": 11.686928749084473,
+        "classical_ll": null,
+        "city": "Chengdu"
+      },
+      "287735": {
+        "neural_ll": 10.867002487182617,
+        "classical_ll": null,
+        "city": "Shenzhen"
+      },
+      "287736": {
+        "neural_ll": 8.288942337036133,
+        "classical_ll": null,
+        "city": "Chongqing"
+      },
+      "287737": {
+        "neural_ll": 9.0049409866333,
+        "classical_ll": null,
+        "city": "Beijing"
+      },
+      "287745": {
+        "neural_ll": 12.09180736541748,
+        "classical_ll": null,
+        "city": "Wuhan"
+      },
+      "287747": {
+        "neural_ll": 10.843175888061523,
+        "classical_ll": null,
+        "city": "Chengdu"
+      },
+      "287748": {
+        "neural_ll": 11.370699882507324,
+        "classical_ll": null,
+        "city": "Shenzhen"
+      },
+      "289192": {
+        "neural_ll": 11.47596263885498,
+        "classical_ll": null,
+        "city": "Seoul"
+      },
+      "289203": {
+        "neural_ll": 12.437297821044922,
+        "classical_ll": null,
+        "city": "Wellington"
+      },
+      "289204": {
+        "neural_ll": 11.583290100097656,
+        "classical_ll": null,
+        "city": "Lucknow"
+      },
+      "289207": {
+        "neural_ll": 10.765052795410156,
+        "classical_ll": null,
+        "city": "Tokyo"
+      },
+      "289209": {
+        "neural_ll": 10.789322853088379,
+        "classical_ll": null,
+        "city": "Shanghai"
+      },
+      "289210": {
+        "neural_ll": 12.073227882385254,
+        "classical_ll": null,
+        "city": "Singapore"
+      },
+      "289213": {
+        "neural_ll": 11.604314804077148,
+        "classical_ll": null,
+        "city": "Warsaw"
+      },
+      "289214": {
+        "neural_ll": 10.934645652770996,
+        "classical_ll": null,
+        "city": "Taipei"
+      },
+      "289226": {
+        "neural_ll": 10.044620513916016,
+        "classical_ll": null,
+        "city": "San Francisco"
+      }
+    }
+  },
+  "gpu": {
+    "name": "NVIDIA GeForce RTX 3060",
+    "peak_vram_mb": 689.282048
+  },
+  "wallet_vocabulary": {
+    "size": 500,
+    "top_10": [
+      {
+        "idx": 0,
+        "address": "0x5F390E4B7D6f06..."
+      },
+      {
+        "idx": 1,
+        "address": "0xe3726A1b9C6ba2..."
+      },
+      {
+        "idx": 2,
+        "address": "0x39fd921acF9BE2..."
+      },
+      {
+        "idx": 3,
+        "address": "0xF2EBB6fb4982C8..."
+      },
+      {
+        "idx": 4,
+        "address": "0xe3479950EF6E89..."
+      },
+      {
+        "idx": 5,
+        "address": "0x0E7Fa09bF44514..."
+      },
+      {
+        "idx": 6,
+        "address": "0x6bf76476541A93..."
+      },
+      {
+        "idx": 7,
+        "address": "0xE5A1515f50b120..."
+      },
+      {
+        "idx": 8,
+        "address": "0x3dD2Db2D398Ff7..."
+      },
+      {
+        "idx": 9,
+        "address": "0xE8Dd7741CCB123..."
+      }
+    ]
+  }
+}
