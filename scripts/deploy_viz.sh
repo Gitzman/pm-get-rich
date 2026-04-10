@@ -14,6 +14,11 @@ echo "--- Exporting data to Parquet ---"
 cd "$REPO_DIR"
 uv run python -m scripts.export_parquet
 
+# Step 1b: Export comparison data
+echo ""
+echo "--- Exporting comparison data ---"
+uv run python scripts/export_comparison.py
+
 # Step 2: Verify data files exist
 echo ""
 echo "--- Checking data files ---"
