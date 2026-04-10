@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cross-Market Generalization - PM Get Rich</title>
+    <title>Cross-Market Generalization: Verdict - PM Get Rich</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -51,6 +51,16 @@
             font-size: 0.9rem;
         }
         .verdict strong { color: #53dba1; }
+        .verdict h3 { color: #f0a500; margin: 1.25rem 0 0.5rem; font-size: 0.95rem; }
+        .verdict h3:first-child { margin-top: 0; }
+        .verdict .honest-grade { font-size: 1.3rem; color: #f0a500; font-weight: bold; margin-bottom: 0.5rem; }
+        .verdict ul { margin: 0.3rem 0 0.3rem 1.2rem; }
+        .verdict li { margin-bottom: 0.25rem; }
+        .verdict .caveat { color: #e74c3c; font-weight: bold; }
+        .verdict .positive-note { color: #53dba1; }
+        .verdict .recommendation { background: rgba(83, 219, 161, 0.08); border-radius: 4px; padding: 0.75rem; margin-top: 0.75rem; }
+        .verdict .recommendation strong { color: #53dba1; }
+        .verdict code { background: rgba(255,255,255,0.08); padding: 0.1rem 0.3rem; border-radius: 3px; font-size: 0.8rem; }
 
         .metrics-table {
             width: 100%;
@@ -237,12 +247,73 @@
     </header>
 
     <div class="container">
-        <!-- Verdict -->
+        <!-- Verdict: Honest Assessment (pm-svz.4) -->
         <div class="verdict">
-            <strong>Result:</strong> A single Transformer TPP trained across 25 markets (9 cities, 483K events)
-            achieves held-out LL of <strong>+9.17</strong>, dramatically beating per-market classical Hawkes
-            (<strong>-5.29</strong>) on all 6 test markets. Shared wallet embeddings capture cross-market
-            trading patterns — the same wallets exhibit consistent behavior across cities.
+            <div class="honest-grade">Verdict: Promising infrastructure, overstated results</div>
+
+            <h3>1. Does the cross-market model generalize?</h3>
+            <p><span class="caveat">Not proven.</span> The global chronological 80/20 split means
+            every market appears in the training set &mdash; the model saw earlier events from all 25 markets
+            before being tested on their later events. This is held-out-by-time, not held-out-by-market.
+            A true generalization test would train on markets {1&ndash;19} and test on {20&ndash;25} with
+            zero leakage. That experiment was never run.</p>
+            <p>The headline LL comparison (+9.17 vs &minus;5.29) is <span class="caveat">apples-to-oranges</span>.
+            The neural model's loss includes a log-normal time component (<code>time_nll = &minus;12.12</code>)
+            that can go arbitrarily negative when the model outputs low &sigma;. Classical Hawkes LL measures
+            only the intensity integral. Stripping the time term, the neural wallet+bucket loss is ~+2.94 &mdash;
+            still better than classical, but a ~8-point gap, not ~14.</p>
+
+            <h3>2. Do wallet embeddings recover interpretable structure?</h3>
+            <p><span class="positive-note">Partially.</span> The 500-wallet, 64-dim embedding space does
+            capture activity-level structure: high-frequency traders cluster together in t-SNE.
+            But there is no clear separation of sharp vs reactive vs market-maker archetypes.
+            Profitability coloring (from whale backtest PnL) shows no spatial correlation with
+            embedding position &mdash; profitable wallets are scattered uniformly.</p>
+            <p>The vocabulary covers only the top 500 wallets (&ge;5 events each). Every other wallet
+            maps to UNK. With ~400K events across potentially thousands of distinct wallets,
+            this is a coarse compression that filters out most participants.</p>
+
+            <h3>3. Does the model see influence that per-market Hawkes misses?</h3>
+            <p><span class="caveat">Unconfirmed.</span> The attention analysis shows strong diagonal
+            dominance &mdash; the model primarily attends to immediately preceding events regardless
+            of wallet identity. This is expected from causal masking + recency bias, not evidence
+            of learned cross-wallet influence. The top attention pairs are dominated by temporal
+            proximity, not "wallet A traded &rarr; wallet B followed." Cross-city attention
+            exists but is not distinguishable from random baseline given the interleaved data.</p>
+
+            <h3>4. Recommendation: best city/date for convergence prediction</h3>
+            <div class="recommendation">
+                <strong>If continuing:</strong> Seoul has the densest coverage (7 markets, March 23&ndash;29)
+                and consistently high branching ratios (0.90&ndash;1.05). NYC March 31 (event 313358) showed
+                the highest neural LL (+11.80) and a relatively low classical LL (&minus;5.04), suggesting
+                room for the model to exploit structure classical misses.
+                <br/><br/>
+                <strong>But first, run the real generalization test:</strong> train on the 19 non-Seoul/NYC
+                markets, test on Seoul+NYC with zero data leakage. If the model still beats classical
+                per-market Hawkes on those held-out cities, the generalization claim stands and Seoul/NYC
+                convergence prediction is worth pursuing.
+                <br/><br/>
+                <strong>If results don't support it:</strong> Pivot to per-market neural TPP (one model
+                per city-date, same architecture but no cross-market claims). The wallet embedding idea
+                still has value for tracking repeat traders within a single market.
+            </div>
+
+            <h3>5. What would you change about the architecture?</h3>
+            <ul>
+                <li><strong>Market-held-out training:</strong> Leave-one-city-out cross-validation
+                    is the minimum bar for "generalization" claims.</li>
+                <li><strong>Separate the time head:</strong> The log-normal time prediction dominates
+                    the loss and inflates LL. Evaluate wallet prediction accuracy (top-5 accuracy,
+                    not NLL) separately from temporal calibration.</li>
+                <li><strong>Expand wallet vocabulary:</strong> 500 is too coarse. Use a frequency-based
+                    hash or dynamic vocabulary that covers wallets seen &ge;2 times, not &ge;5.</li>
+                <li><strong>Causal influence validation:</strong> Add Granger-causality or
+                    do-calculus tests &mdash; attention weights alone do not prove influence.
+                    Intervene: shuffle wallet A's events and measure prediction degradation for wallet B.</li>
+                <li><strong>Bucket position encoding:</strong> Relative position (0=floor, 1=ceiling)
+                    already implemented, but bucket MSE=0.06 is nearly trivial. Consider predicting
+                    the bucket as a classification (11-way) to better capture discrete structure.</li>
+            </ul>
         </div>
 
         <!-- Model Summary -->
@@ -254,8 +325,11 @@
         <!-- Per-Market Comparison -->
         <h2>Per-Market Held-Out Log-Likelihood</h2>
         <p style="font-size: 0.85rem; color: #888; margin-bottom: 1rem;">
-            Chronological 80/20 split. Neural = single cross-market model evaluated per-market.
-            Classical = independent Hawkes per market. Test markets (newest 20%) shown with neural LL.
+            Global chronological 80/20 split (all markets interleaved by timestamp).
+            Neural = single cross-market model evaluated per-market on latest 20% of events.
+            Classical = independent Hawkes per market with per-market 80/20 split.
+            <strong style="color: #f0a500;">Caveat:</strong> all markets appear in the neural training set
+            (earlier events). This is not a held-out-by-market evaluation.
         </p>
         <table class="metrics-table" id="market-table">
             <tr>
@@ -272,9 +346,9 @@
         <!-- Per-City Summary -->
         <h2>Per-City Transfer Performance</h2>
         <p style="font-size: 0.85rem; color: #888; margin-bottom: 1rem;">
-            Does the model transfer across cities? Mean held-out LL by city.
-            Training includes events from all cities (chronological split), so this tests
-            whether a shared model captures city-specific patterns.
+            Mean held-out LL by city (temporal split only &mdash; all cities in training).
+            This does <strong style="color: #f0a500;">not</strong> test cross-city transfer.
+            A leave-one-city-out experiment is needed to validate transfer claims.
         </p>
         <table class="metrics-table" id="city-table">
             <tr>
@@ -313,9 +387,10 @@
         <!-- Attention Analysis -->
         <h2>Attention Analysis</h2>
         <p style="font-size: 0.85rem; color: #888; margin-bottom: 1rem;">
-            What does the model attend to when predicting the next trade?
-            Cross-market attention reveals wallets whose behavior in one market
-            predicts activity in another.
+            Attention weights from the transformer when predicting next trades.
+            <strong style="color: #f0a500;">Note:</strong> attention weights show what the model attends to,
+            not causal influence. Diagonal dominance (recency bias) is expected from causal masking.
+            Cross-market attention may reflect data interleaving, not learned influence patterns.
         </p>
         <div class="side-by-side">
             <div class="img-panel">
@@ -331,7 +406,8 @@
         <h2>Top Cross-Wallet Attention Pairs</h2>
         <p style="font-size: 0.85rem; color: #888; margin-bottom: 1rem;">
             Highest attention weights between different wallets on held-out data.
-            "Wallet A traded &rarr; model attends to A when predicting B &rarr; B trades."
+            These are correlational, not causal. Interventional tests (shuffling wallet A's events
+            and measuring prediction degradation for wallet B) would be needed to confirm influence.
         </p>
         <table class="metrics-table" id="attention-table">
             <tr>
