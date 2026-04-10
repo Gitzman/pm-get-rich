@@ -126,6 +126,25 @@ def get_top_temperature_events(
     return [{"event_id": r[0], "event_title": r[1], "n_trades": r[2]} for r in rows]
 
 
+def get_all_resolved_highest_temp_events(
+    con: duckdb.DuckDBPyConnection,
+) -> list[dict]:
+    """Return all resolved highest-temperature events."""
+    rows = con.execute("""
+        SELECT
+            wm.event_id,
+            wm.event_title,
+            COUNT(DISTINCT t.transaction_hash) as n_trades
+        FROM weather_markets wm
+        JOIN weather_resolved wr ON wr.event_id = wm.event_id
+        LEFT JOIN trades t ON t.event_id = wm.event_id
+        WHERE LOWER(wm.event_title) LIKE '%highest temp%'
+        GROUP BY wm.event_id, wm.event_title
+        ORDER BY n_trades DESC
+    """).fetchall()
+    return [{"event_id": r[0], "event_title": r[1], "n_trades": r[2]} for r in rows]
+
+
 def normalize_event(
     con: duckdb.DuckDBPyConnection,
     event_id: str,
@@ -300,6 +319,16 @@ def main() -> None:
     parser.add_argument("--top", type=int, default=20, help="Top N events")
     parser.add_argument("--event", type=str, help="Single event ID to process")
     parser.add_argument(
+        "--all-resolved",
+        action="store_true",
+        help="Process ALL resolved highest-temp events (overrides --top)",
+    )
+    parser.add_argument(
+        "--skip-existing",
+        action="store_true",
+        help="Skip events that already have output directories",
+    )
+    parser.add_argument(
         "--out", type=Path, default=Path("data/events"), help="Output directory"
     )
     args = parser.parse_args()
@@ -311,6 +340,9 @@ def main() -> None:
 
     if args.event:
         events = [{"event_id": args.event}]
+    elif args.all_resolved:
+        events = get_all_resolved_highest_temp_events(con)
+        print(f"Found {len(events)} resolved highest-temp events to normalize")
     else:
         events = get_top_temperature_events(con, args.top)
         print(f"Found {len(events)} temperature events to normalize")
@@ -321,9 +353,13 @@ def main() -> None:
     # Also write a combined parquet partitioned by event_id
     all_frames: list[pl.DataFrame] = []
 
+    skipped = 0
     for i, evt in enumerate(events):
         eid = evt["event_id"]
         title = evt.get("event_title", "")
+        if args.skip_existing and (output_dir / eid / "_meta.json").exists():
+            skipped += 1
+            continue
         print(f"  [{i+1}/{len(events)}] event={eid} {title[:60]}")
         try:
             meta = normalize_event(con, eid, output_dir)
@@ -337,6 +373,9 @@ def main() -> None:
             all_frames.append(df)
         except Exception as e:
             print(f"    ERROR: {e}", file=sys.stderr)
+
+    if skipped:
+        print(f"\nSkipped {skipped} already-processed events")
 
     # Write combined partitioned parquet
     if all_frames:
