@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cross-Market Generalization - PM Get Rich</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace;
+            background: #1a1a2e;
+            color: #e0e0e0;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        header {
+            background: #16213e;
+            padding: 1rem;
+            border-bottom: 2px solid #0f3460;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header h1 { font-size: 1.2rem; color: #53dba1; }
+        header .subtitle { font-size: 0.8rem; color: #888; }
+        header nav a {
+            color: #53dba1;
+            text-decoration: none;
+            font-size: 0.85rem;
+            margin-left: 1rem;
+        }
+        header nav a:hover { text-decoration: underline; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 1.5rem 1rem; }
+
+        h2 {
+            color: #53dba1;
+            font-size: 1.1rem;
+            margin: 2rem 0 1rem;
+            padding-bottom: 0.3rem;
+            border-bottom: 1px solid #0f3460;
+        }
+        h2:first-of-type { margin-top: 0.5rem; }
+
+        .verdict {
+            background: #16213e;
+            border: 1px solid #0f3460;
+            border-left: 4px solid #53dba1;
+            border-radius: 6px;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+        }
+        .verdict strong { color: #53dba1; }
+
+        .metrics-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            margin-bottom: 1.5rem;
+        }
+        .metrics-table th {
+            background: #0f3460;
+            padding: 0.6rem 0.8rem;
+            text-align: left;
+            white-space: nowrap;
+        }
+        .metrics-table th.winner { color: #53dba1; }
+        .metrics-table td {
+            padding: 0.5rem 0.8rem;
+            border-bottom: 1px solid #1a2744;
+        }
+        .metrics-table tr:hover { background: rgba(83, 219, 161, 0.05); }
+        .highlight { color: #53dba1; font-weight: bold; }
+        .dim { color: #888; }
+        .negative { color: #e74c3c; }
+        .positive { color: #53dba1; }
+
+        .side-by-side {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .img-panel {
+            background: #16213e;
+            border: 1px solid #0f3460;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .img-panel .panel-title {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid #0f3460;
+        }
+        .img-panel img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .full-width { grid-template-columns: 1fr; }
+
+        /* Embedding canvas */
+        #embed-container {
+            background: #16213e;
+            border: 1px solid #0f3460;
+            border-radius: 6px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        #embed-canvas {
+            width: 100%;
+            height: 500px;
+            background: #0d1117;
+            border-radius: 4px;
+            cursor: crosshair;
+        }
+        #embed-controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 0.75rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        #embed-controls label { font-size: 0.8rem; color: #888; }
+        #embed-controls select, #embed-controls input {
+            background: #0d1117;
+            color: #e0e0e0;
+            border: 1px solid #0f3460;
+            padding: 0.3rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        #embed-controls input[type="text"] { width: 200px; }
+        #embed-tooltip {
+            font-size: 0.75rem;
+            color: #53dba1;
+            min-height: 1.2em;
+            margin-top: 0.5rem;
+        }
+
+        /* DuckDB console */
+        #status {
+            background: #16213e;
+            padding: 0.6rem 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            font-size: 0.8rem;
+        }
+        #status.loading { border-left: 3px solid #f0a500; }
+        #status.ready { border-left: 3px solid #53dba1; }
+        #status.error { border-left: 3px solid #e74c3c; }
+
+        .queries { margin-bottom: 0.75rem; display: flex; flex-wrap: wrap; gap: 0.3rem; }
+        .queries button {
+            background: #0f3460;
+            color: #e0e0e0;
+            border: 1px solid #1a5276;
+            padding: 0.4rem 0.6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+        .queries button:hover { background: #1a5276; }
+
+        .console textarea {
+            width: 100%;
+            min-height: 60px;
+            background: #0d1117;
+            color: #53dba1;
+            border: 1px solid #0f3460;
+            border-radius: 6px;
+            padding: 0.75rem;
+            font-family: 'Fira Code', 'Cascadia Code', 'Courier New', monospace;
+            font-size: 0.8rem;
+            resize: vertical;
+        }
+        .console .actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            align-items: center;
+        }
+        #run-btn {
+            background: #53dba1;
+            color: #1a1a2e;
+            border: none;
+            padding: 0.4rem 1.2rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.85rem;
+        }
+        #run-btn:hover { background: #3bc88a; }
+        #run-btn:disabled { background: #555; cursor: not-allowed; }
+        .hint { font-size: 0.7rem; color: #555; }
+
+        .results { overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 0.75rem; }
+        .results table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+        }
+        .results th {
+            background: #0f3460;
+            padding: 0.5rem;
+            text-align: left;
+            position: sticky;
+            top: 0;
+            white-space: nowrap;
+        }
+        .results td {
+            padding: 0.4rem 0.5rem;
+            border-bottom: 1px solid #1a2744;
+        }
+        .results tr:hover { background: rgba(83, 219, 161, 0.05); }
+        .meta { font-size: 0.75rem; color: #555; margin-top: 0.3rem; }
+
+        @media (max-width: 768px) {
+            .side-by-side { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <h1>Cross-Market Generalization</h1>
+            <span class="subtitle">Transformer TPP with shared wallet embeddings across 25 markets</span>
+        </div>
+        <nav>
+            <a href="/">Explorer</a>
+            <a href="/comparison.html">Single-Market</a>
+            <a href="/generalization.html">Generalization</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <!-- Verdict -->
+        <div class="verdict">
+            <strong>Result:</strong> A single Transformer TPP trained across 25 markets (9 cities, 483K events)
+            achieves held-out LL of <strong>+9.17</strong>, dramatically beating per-market classical Hawkes
+            (<strong>-5.29</strong>) on all 6 test markets. Shared wallet embeddings capture cross-market
+            trading patterns — the same wallets exhibit consistent behavior across cities.
+        </div>
+
+        <!-- Model Summary -->
+        <h2>Model Architecture</h2>
+        <table class="metrics-table" id="model-summary">
+            <tr><th>Property</th><th>Value</th></tr>
+        </table>
+
+        <!-- Per-Market Comparison -->
+        <h2>Per-Market Held-Out Log-Likelihood</h2>
+        <p style="font-size: 0.85rem; color: #888; margin-bottom: 1rem;">
+            Chronological 80/20 split. Neural = single cross-market model evaluated per-market.
+            Classical = independent Hawkes per market. Test markets (newest 20%) shown with neural LL.
+        </p>
+        <table class="metrics-table" id="market-table">
+            <tr>
+                <th>Market</th>
+                <th>City</th>
+                <th>Date</th>
+                <th>Classical LL</th>
+                <th class="winner">Neural LL</th>
+                <th>Improvement</th>
+                <th>Events</th>
+            </tr>
+        </table>
+
+        <!-- Per-City Summary -->
+        <h2>Per-City Transfer Performance</h2>
+        <p style="font-size: 0.85rem; color: #888; margin-bottom: 1rem;">
+            Does the model transfer across cities? Mean held-out LL by city.
+            Training includes events from all cities (chronological split), so this tests
+            whether a shared model captures city-specific patterns.
+        </p>
+        <table class="metrics-table" id="city-table">
+            <tr>
+                <th>City</th>
+                <th>Markets</th>
+                <th>Classical Mean LL</th>
+                <th class="winner">Neural Mean LL</th>
+                <th>Test Markets</th>
+            </tr>
+        </table>
+
+        <!-- Wallet Embeddings Interactive -->
+        <h2>Wallet Embedding Space</h2>
+        <p style="font-size: 0.85rem; color: #888; margin-bottom: 1rem;">
+            500 wallets projected via t-SNE. Color by profitability (PnL) or activity.
+            Search by address to locate specific wallets.
+        </p>
+        <div id="embed-container">
+            <div id="embed-controls">
+                <label>Color by:
+                    <select id="color-mode">
+                        <option value="pnl">Profitability (PnL)</option>
+                        <option value="roi">ROI</option>
+                        <option value="activity">Activity (events)</option>
+                        <option value="markets">Market diversity</option>
+                    </select>
+                </label>
+                <label>Search wallet:
+                    <input type="text" id="wallet-search" placeholder="0x..." />
+                </label>
+                <span id="embed-tooltip"></span>
+            </div>
+            <canvas id="embed-canvas"></canvas>
+        </div>
+
+        <!-- Attention Analysis -->
+        <h2>Attention Analysis</h2>
+        <p style="font-size: 0.85rem; color: #888; margin-bottom: 1rem;">
+            What does the model attend to when predicting the next trade?
+            Cross-market attention reveals wallets whose behavior in one market
+            predicts activity in another.
+        </p>
+        <div class="side-by-side">
+            <div class="img-panel">
+                <div class="panel-title">Attention Heatmap (test sequence)</div>
+                <img src="data/gen_reports/attention_heatmap.png" alt="Attention heatmap" />
+            </div>
+            <div class="img-panel">
+                <div class="panel-title">Same-Market vs Cross-Market Attention</div>
+                <img src="data/gen_reports/cross_market_attention.png" alt="Cross-market attention" />
+            </div>
+        </div>
+
+        <h2>Top Cross-Wallet Attention Pairs</h2>
+        <p style="font-size: 0.85rem; color: #888; margin-bottom: 1rem;">
+            Highest attention weights between different wallets on held-out data.
+            "Wallet A traded &rarr; model attends to A when predicting B &rarr; B trades."
+        </p>
+        <table class="metrics-table" id="attention-table">
+            <tr>
+                <th>Key Wallet (attended to)</th>
+                <th>Key City</th>
+                <th>&rarr;</th>
+                <th>Query Wallet (predicted)</th>
+                <th>Query City</th>
+                <th>Attention</th>
+                <th>Cross-Market</th>
+            </tr>
+        </table>
+
+        <!-- Training & Visualization -->
+        <h2>Training &amp; Visualization</h2>
+        <div class="side-by-side">
+            <div class="img-panel">
+                <div class="panel-title">Training Curves</div>
+                <img src="data/gen_reports/training_curves.png" alt="Training curves" />
+            </div>
+            <div class="img-panel">
+                <div class="panel-title">Market Comparison (Neural vs Classical)</div>
+                <img src="data/gen_reports/market_comparison.png" alt="Market comparison" />
+            </div>
+        </div>
+        <div class="side-by-side full-width">
+            <div class="img-panel">
+                <div class="panel-title">Wallet Embeddings t-SNE (by activity &amp; market diversity)</div>
+                <img src="data/gen_reports/wallet_embeddings_tsne.png" alt="Wallet embeddings" />
+            </div>
+        </div>
+
+        <!-- DuckDB Explorer -->
+        <h2>Data Explorer</h2>
+        <div id="status" class="loading">Initializing DuckDB-WASM...</div>
+
+        <div class="queries">
+            <button onclick="runPreset('markets')">All Markets</button>
+            <button onclick="runPreset('test_markets')">Test Markets</button>
+            <button onclick="runPreset('cities')">By City</button>
+            <button onclick="runPreset('top_wallets')">Top Wallets (PnL)</button>
+            <button onclick="runPreset('attention')">Top Attention Pairs</button>
+            <button onclick="runPreset('cross_attn')">Cross-City Attention</button>
+            <button onclick="runPreset('search_wallet')">Search Wallet</button>
+        </div>
+
+        <div class="console">
+            <textarea id="sql" rows="4">SELECT * FROM gen_market_comparison ORDER BY neural_ll DESC NULLS LAST;</textarea>
+            <div class="actions">
+                <button id="run-btn" disabled onclick="runQuery()">Run (Ctrl+Enter)</button>
+                <span class="hint">Tables: gen_market_comparison, gen_wallet_embeddings, gen_attention_examples, gen_city_comparison, gen_model_summary</span>
+            </div>
+        </div>
+        <div class="results" id="results"></div>
+    </div>
+
+    <script type="module">
+        import * as duckdb from 'https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@1.28.0/+esm';
+
+        const PRESETS = {
+            markets: `SELECT event_id, city, date, classical_ll, neural_ll, improvement, n_train + n_test as total_events, in_test_set
+FROM gen_market_comparison
+ORDER BY neural_ll DESC NULLS LAST;`,
+            test_markets: `SELECT event_id, city, date, classical_ll, neural_ll,
+  round(neural_ll - classical_ll, 2) as improvement
+FROM gen_market_comparison
+WHERE in_test_set = true
+ORDER BY improvement DESC;`,
+            cities: `SELECT city, n_markets, classical_mean_ll, neural_mean_ll, n_neural_test
+FROM gen_city_comparison
+ORDER BY neural_mean_ll DESC NULLS LAST;`,
+            top_wallets: `SELECT address_short, total_pnl, roi, n_events, n_markets, profitable
+FROM gen_wallet_embeddings
+ORDER BY total_pnl DESC
+LIMIT 25;`,
+            attention: `SELECT key_wallet, key_city, query_wallet, query_city,
+  round(attention_weight, 4) as attn, cross_market, cross_city
+FROM gen_attention_examples
+ORDER BY attention_weight DESC
+LIMIT 25;`,
+            cross_attn: `SELECT key_wallet, key_city, key_event, query_wallet, query_city, query_event,
+  round(attention_weight, 4) as attn
+FROM gen_attention_examples
+WHERE cross_city = true
+ORDER BY attention_weight DESC
+LIMIT 25;`,
+            search_wallet: `-- Replace '0x...' with a wallet address prefix
+SELECT address, total_pnl, roi, n_events, n_markets, tsne_x, tsne_y
+FROM gen_wallet_embeddings
+WHERE address LIKE '0xe3726%'
+LIMIT 10;`,
+        };
+
+        const statusEl = document.getElementById('status');
+        const sqlEl = document.getElementById('sql');
+        const runBtn = document.getElementById('run-btn');
+        let conn = null;
+        let embedData = null;
+
+        function renderTable(result) {
+            const schema = result.schema;
+            const rows = result.toArray();
+            if (!rows.length) return '<div class="meta">No results</div>';
+            const fields = schema.fields.map(f => f.name);
+            let html = '<table><tr>' + fields.map(f => `<th>${f}</th>`).join('') + '</tr>';
+            for (const row of rows.slice(0, 500)) {
+                html += '<tr>';
+                for (const f of fields) {
+                    let v = row[f];
+                    if (v === null || v === undefined) v = '<span class="dim">null</span>';
+                    else if (typeof v === 'number') v = Number.isInteger(v) ? v.toLocaleString() : v;
+                    else if (typeof v === 'bigint') v = v.toLocaleString();
+                    html += `<td>${v}</td>`;
+                }
+                html += '</tr>';
+            }
+            html += '</table>';
+            if (rows.length > 500) html += `<div class="meta">Showing 500 of ${rows.length}</div>`;
+            return html;
+        }
+
+        async function init() {
+            try {
+                const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles();
+                const bundle = await duckdb.selectBundle(JSDELIVR_BUNDLES);
+                const workerUrl = URL.createObjectURL(
+                    new Blob([`importScripts("${bundle.mainWorker}");`], { type: 'text/javascript' })
+                );
+                const worker = new Worker(workerUrl);
+                const logger = new duckdb.ConsoleLogger();
+                const db = new duckdb.AsyncDuckDB(logger, worker);
+                await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
+                conn = await db.connect();
+                URL.revokeObjectURL(workerUrl);
+
+                statusEl.textContent = 'Loading generalization data...';
+                const tables = [
+                    'gen_market_comparison',
+                    'gen_wallet_embeddings',
+                    'gen_attention_examples',
+                    'gen_city_comparison',
+                    'gen_model_summary',
+                ];
+                const loaded = [];
+                for (const t of tables) {
+                    try {
+                        const resp = await fetch(`data/${t}.parquet`);
+                        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                        const buf = await resp.arrayBuffer();
+                        await db.registerFileBuffer(`${t}.parquet`, new Uint8Array(buf));
+                        await conn.query(`CREATE TABLE ${t} AS SELECT * FROM read_parquet('${t}.parquet')`);
+                        loaded.push(t);
+                    } catch (e) {
+                        console.warn(`Skipped ${t}: ${e.message}`);
+                    }
+                }
+
+                statusEl.textContent = `Ready (${loaded.length} tables loaded)`;
+                statusEl.className = 'ready';
+                runBtn.disabled = false;
+
+                // Populate static tables
+                await populateModelSummary();
+                await populateMarketTable();
+                await populateCityTable();
+                await populateAttentionTable();
+                await initEmbeddingViz();
+            } catch (e) {
+                statusEl.textContent = `Error: ${e.message}`;
+                statusEl.className = 'error';
+                console.error('Init failed:', e);
+            }
+        }
+
+        async function populateModelSummary() {
+            if (!conn) return;
+            const result = await conn.query('SELECT metric, value FROM gen_model_summary');
+            const rows = result.toArray();
+            const table = document.getElementById('model-summary');
+            for (const row of rows) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${row.metric}</td><td class="highlight">${row.value}</td>`;
+                table.appendChild(tr);
+            }
+        }
+
+        async function populateMarketTable() {
+            if (!conn) return;
+            const result = await conn.query(`
+                SELECT event_id, city, date, classical_ll, neural_ll, improvement,
+                       n_train + n_test as total_events, in_test_set
+                FROM gen_market_comparison
+                ORDER BY in_test_set DESC, neural_ll DESC NULLS LAST
+            `);
+            const rows = result.toArray();
+            const table = document.getElementById('market-table');
+            for (const row of rows) {
+                const tr = document.createElement('tr');
+                const isTest = row.in_test_set;
+                const neuralClass = isTest ? 'highlight' : 'dim';
+                const impClass = row.improvement > 0 ? 'positive' : (row.improvement < 0 ? 'negative' : 'dim');
+                tr.innerHTML = `
+                    <td>${row.event_id}</td>
+                    <td>${row.city}</td>
+                    <td>${row.date}</td>
+                    <td class="negative">${row.classical_ll.toFixed(3)}</td>
+                    <td class="${neuralClass}">${isTest ? row.neural_ll.toFixed(3) : '—'}</td>
+                    <td class="${isTest ? impClass : 'dim'}">${isTest ? '+' + row.improvement.toFixed(2) : '—'}</td>
+                    <td class="dim">${Number(row.total_events).toLocaleString()}</td>
+                `;
+                if (isTest) tr.style.background = 'rgba(83, 219, 161, 0.03)';
+                table.appendChild(tr);
+            }
+        }
+
+        async function populateCityTable() {
+            if (!conn) return;
+            const result = await conn.query(`
+                SELECT city, n_markets, classical_mean_ll, neural_mean_ll, n_neural_test
+                FROM gen_city_comparison
+                ORDER BY neural_mean_ll DESC NULLS LAST
+            `);
+            const rows = result.toArray();
+            const table = document.getElementById('city-table');
+            for (const row of rows) {
+                const tr = document.createElement('tr');
+                const hasNeural = row.neural_mean_ll !== null;
+                tr.innerHTML = `
+                    <td>${row.city}</td>
+                    <td>${row.n_markets}</td>
+                    <td class="negative">${row.classical_mean_ll.toFixed(3)}</td>
+                    <td class="${hasNeural ? 'highlight' : 'dim'}">${hasNeural ? row.neural_mean_ll.toFixed(3) : '—'}</td>
+                    <td class="dim">${row.n_neural_test}</td>
+                `;
+                table.appendChild(tr);
+            }
+        }
+
+        async function populateAttentionTable() {
+            if (!conn) return;
+            const result = await conn.query(`
+                SELECT key_wallet, key_city, query_wallet, query_city,
+                       attention_weight, cross_market, cross_city
+                FROM gen_attention_examples
+                ORDER BY attention_weight DESC
+                LIMIT 20
+            `);
+            const rows = result.toArray();
+            const table = document.getElementById('attention-table');
+            for (const row of rows) {
+                const tr = document.createElement('tr');
+                const crossLabel = row.cross_city ? '<span class="highlight">cross-city</span>' :
+                    (row.cross_market ? '<span style="color:#f0a500;">cross-mkt</span>' : '<span class="dim">same</span>');
+                tr.innerHTML = `
+                    <td style="font-family:monospace;font-size:0.75rem;">${row.key_wallet}</td>
+                    <td>${row.key_city}</td>
+                    <td style="color:#53dba1;">&rarr;</td>
+                    <td style="font-family:monospace;font-size:0.75rem;">${row.query_wallet}</td>
+                    <td>${row.query_city}</td>
+                    <td class="highlight">${row.attention_weight.toFixed(4)}</td>
+                    <td>${crossLabel}</td>
+                `;
+                table.appendChild(tr);
+            }
+        }
+
+        async function initEmbeddingViz() {
+            if (!conn) return;
+            const result = await conn.query(`
+                SELECT idx, address, address_short, tsne_x, tsne_y,
+                       n_events, n_markets, total_pnl, roi, profitable
+                FROM gen_wallet_embeddings
+            `);
+            embedData = result.toArray();
+            drawEmbeddings();
+
+            document.getElementById('color-mode').addEventListener('change', drawEmbeddings);
+            document.getElementById('wallet-search').addEventListener('input', drawEmbeddings);
+
+            const canvas = document.getElementById('embed-canvas');
+            canvas.addEventListener('mousemove', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const mx = e.clientX - rect.left;
+                const my = e.clientY - rect.top;
+                handleHover(mx, my, rect.width, rect.height);
+            });
+        }
+
+        function drawEmbeddings() {
+            if (!embedData || !embedData.length) return;
+            const canvas = document.getElementById('embed-canvas');
+            const ctx = canvas.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.scale(dpr, dpr);
+            ctx.clearRect(0, 0, rect.width, rect.height);
+
+            const mode = document.getElementById('color-mode').value;
+            const search = document.getElementById('wallet-search').value.toLowerCase();
+
+            // Compute bounds
+            let xMin = Infinity, xMax = -Infinity, yMin = Infinity, yMax = -Infinity;
+            for (const d of embedData) {
+                xMin = Math.min(xMin, d.tsne_x); xMax = Math.max(xMax, d.tsne_x);
+                yMin = Math.min(yMin, d.tsne_y); yMax = Math.max(yMax, d.tsne_y);
+            }
+            const pad = 30;
+            const w = rect.width - 2 * pad;
+            const h = rect.height - 2 * pad;
+            const sx = v => pad + (v - xMin) / (xMax - xMin) * w;
+            const sy = v => pad + (v - yMin) / (yMax - yMin) * h;
+
+            // Color scale
+            function getColor(d) {
+                let val, maxVal;
+                if (mode === 'pnl') {
+                    val = d.total_pnl;
+                    const absMax = Math.max(...embedData.map(d => Math.abs(d.total_pnl)));
+                    if (val > 0) return `rgba(83, 219, 161, ${Math.min(1, Math.abs(val) / absMax * 2 + 0.15)})`;
+                    if (val < 0) return `rgba(231, 76, 60, ${Math.min(1, Math.abs(val) / absMax * 2 + 0.15)})`;
+                    return 'rgba(128, 128, 128, 0.3)';
+                }
+                if (mode === 'roi') {
+                    val = d.roi;
+                    if (val > 0) return `rgba(83, 219, 161, ${Math.min(1, val / 10 + 0.15)})`;
+                    if (val < 0) return `rgba(231, 76, 60, ${Math.min(1, Math.abs(val) / 10 + 0.15)})`;
+                    return 'rgba(128, 128, 128, 0.3)';
+                }
+                if (mode === 'activity') {
+                    val = Math.log1p(d.n_events);
+                    maxVal = Math.max(...embedData.map(d => Math.log1p(d.n_events)));
+                    const t = val / maxVal;
+                    return `rgba(${Math.round(68 + 187 * t)}, ${Math.round(1 + 218 * (1 - t * 0.3))}, ${Math.round(161 - 100 * t)}, ${0.3 + 0.7 * t})`;
+                }
+                // markets
+                val = d.n_markets;
+                maxVal = Math.max(...embedData.map(d => d.n_markets));
+                const t = val / maxVal;
+                return `rgba(${Math.round(240 * t)}, ${Math.round(165 * t)}, ${Math.round(80 + 180 * (1 - t))}, ${0.3 + 0.7 * t})`;
+            }
+
+            // Draw points
+            for (const d of embedData) {
+                const x = sx(d.tsne_x);
+                const y = sy(d.tsne_y);
+                const isMatch = search && d.address.toLowerCase().includes(search);
+                const r = isMatch ? 8 : 4;
+                ctx.beginPath();
+                ctx.arc(x, y, r, 0, Math.PI * 2);
+                ctx.fillStyle = isMatch ? '#fff' : getColor(d);
+                ctx.fill();
+                if (isMatch) {
+                    ctx.strokeStyle = '#53dba1';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    // Draw label
+                    ctx.fillStyle = '#53dba1';
+                    ctx.font = '10px monospace';
+                    ctx.fillText(d.address_short, x + 10, y - 4);
+                }
+            }
+
+            // Legend
+            ctx.fillStyle = '#888';
+            ctx.font = '11px monospace';
+            const labels = {
+                pnl: 'Green=profitable, Red=loss',
+                roi: 'Green=positive ROI, Red=negative',
+                activity: 'Brighter=more events',
+                markets: 'Brighter=more markets',
+            };
+            ctx.fillText(labels[mode] || '', pad, rect.height - 8);
+        }
+
+        function handleHover(mx, my, cw, ch) {
+            if (!embedData) return;
+            const pad = 30;
+            const w = cw - 2 * pad;
+            const h = ch - 2 * pad;
+            let xMin = Infinity, xMax = -Infinity, yMin = Infinity, yMax = -Infinity;
+            for (const d of embedData) {
+                xMin = Math.min(xMin, d.tsne_x); xMax = Math.max(xMax, d.tsne_x);
+                yMin = Math.min(yMin, d.tsne_y); yMax = Math.max(yMax, d.tsne_y);
+            }
+
+            let closest = null, minDist = 15;
+            for (const d of embedData) {
+                const x = pad + (d.tsne_x - xMin) / (xMax - xMin) * w;
+                const y = pad + (d.tsne_y - yMin) / (yMax - yMin) * h;
+                const dist = Math.sqrt((mx - x) ** 2 + (my - y) ** 2);
+                if (dist < minDist) { minDist = dist; closest = d; }
+            }
+
+            const tooltip = document.getElementById('embed-tooltip');
+            if (closest) {
+                const pnlStr = closest.total_pnl >= 0 ? `+$${closest.total_pnl.toLocaleString()}` : `-$${Math.abs(closest.total_pnl).toLocaleString()}`;
+                tooltip.textContent = `${closest.address_short} | PnL: ${pnlStr} | ROI: ${closest.roi.toFixed(1)}x | ${closest.n_events} events across ${closest.n_markets} markets`;
+            } else {
+                tooltip.textContent = '';
+            }
+        }
+
+        window.runQuery = async function() {
+            const sql = sqlEl.value.trim();
+            if (!sql || !conn) return;
+            const resultsEl = document.getElementById('results');
+            resultsEl.innerHTML = '<div class="meta">Running...</div>';
+            runBtn.disabled = true;
+            try {
+                const t0 = performance.now();
+                const result = await conn.query(sql);
+                const elapsed = ((performance.now() - t0) / 1000).toFixed(2);
+                const rows = result.toArray();
+                let html = renderTable(result);
+                html += `<div class="meta">${rows.length} row${rows.length !== 1 ? 's' : ''} (${elapsed}s)</div>`;
+                resultsEl.innerHTML = html;
+            } catch (e) {
+                resultsEl.innerHTML = `<div style="color: #e74c3c; padding: 0.5rem;">${e.message}</div>`;
+            } finally {
+                runBtn.disabled = false;
+            }
+        };
+
+        window.runPreset = function(name) {
+            if (!PRESETS[name]) return;
+            sqlEl.value = PRESETS[name];
+            runQuery();
+        };
+
+        sqlEl.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                runQuery();
+            }
+        });
+
+        window.addEventListener('resize', drawEmbeddings);
+        init();
+    </script>
+</body>
+</html>
