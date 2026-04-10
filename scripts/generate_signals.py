@@ -19,9 +19,11 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import io
 import json
 import sys
 import time
+from contextlib import redirect_stdout
 from pathlib import Path
 
 import numpy as np
@@ -29,6 +31,12 @@ import polars as pl
 import torch
 
 from scripts.fit_hawkes_neural import NeuralHawkes, train_model
+
+
+def _print(*args, **kwargs):
+    """Print with flush for unbuffered output in batch jobs."""
+    kwargs.setdefault("flush", True)
+    print(*args, **kwargs)
 
 DELTA_TS = [15, 30, 60, 120]  # seconds
 THRESHOLD_PCTS = [1, 5, 10]   # top X%
@@ -216,7 +224,7 @@ def process_market(
     try:
         data = load_events_realtime(parquet_path)
     except Exception as e:
-        print(f"  SKIP {event_id}: load failed: {e}")
+        _print(f"  SKIP {event_id}: load failed: {e}")
         return None
 
     times_s = data["times_s"]
@@ -232,11 +240,11 @@ def process_market(
     N_test = N - split
 
     if D < 2:
-        print(f"  SKIP {event_id}: only {D} dimension(s)")
+        _print(f"  SKIP {event_id}: only {D} dimension(s)")
         return None
 
     if N_test < 20:
-        print(f"  SKIP {event_id}: only {N_test} test events")
+        _print(f"  SKIP {event_id}: only {N_test} test events")
         return None
 
     # Train (suppress per-epoch output for batch mode)
@@ -250,18 +258,20 @@ def process_market(
     # Compute t_scale the same way train_model does internally
     t_scale = float(np.diff(train_times).mean()) if len(train_times) > 1 else 1.0
 
-    train_model(
-        model,
-        train_times,
-        train_dims,
-        T_train,
-        device,
-        epochs=epochs,
-        patience=patience,
-        chunk_size=chunk_size,
-        lr=1e-3,
-        n_mc=10,
-    )
+    # Suppress per-epoch output in batch mode
+    with redirect_stdout(io.StringIO()):
+        train_model(
+            model,
+            train_times,
+            train_dims,
+            T_train,
+            device,
+            epochs=epochs,
+            patience=patience,
+            chunk_size=chunk_size,
+            lr=1e-3,
+            n_mc=10,
+        )
 
     # Predict forward intensities on test events
     eval_indices = np.arange(split, N)
@@ -396,32 +406,32 @@ def main() -> None:
     parser.add_argument("--gpu", type=int, default=0)
     args = parser.parse_args()
 
-    print("=" * 60)
-    print("TPP Signal Generator (Convoy 2)")
-    print("=" * 60)
+    _print("=" * 60)
+    _print("TPP Signal Generator (Convoy 2)")
+    _print("=" * 60)
 
     # Device
     if torch.cuda.is_available():
         device = torch.device(f"cuda:{args.gpu}")
-        print(f"GPU: {torch.cuda.get_device_name(args.gpu)}")
+        _print(f"GPU: {torch.cuda.get_device_name(args.gpu)}")
     else:
         device = torch.device("cpu")
-        print("WARNING: CUDA not available, using CPU (will be slow)")
+        _print("WARNING: CUDA not available, using CPU (will be slow)")
 
     # Discover markets
-    print(f"\nDiscovering markets (min_events={args.min_events})...")
+    _print(f"\nDiscovering markets (min_events={args.min_events})...")
     markets = discover_markets(args.events_dir, args.min_events, args.max_markets)
-    print(f"Found {len(markets)} qualifying markets")
+    _print(f"Found {len(markets)} qualifying markets")
 
     if not markets:
-        print("No markets found. Check --events-dir and --min-events.")
+        _print("No markets found. Check --events-dir and --min-events.")
         sys.exit(1)
 
     total_events = sum(n for _, _, n in markets)
-    print(f"Total events across all markets: {total_events:,}")
-    print(f"Sweep: Δt={DELTA_TS}s × threshold=top {THRESHOLD_PCTS}%")
-    print(f"Model: hidden={args.hidden}, embed={args.embed_dim}, "
-          f"epochs={args.epochs}, patience={args.patience}")
+    _print(f"Total events across all markets: {total_events:,}")
+    _print(f"Sweep: Δt={DELTA_TS}s × threshold=top {THRESHOLD_PCTS}%")
+    _print(f"Model: hidden={args.hidden}, embed={args.embed_dim}, "
+           f"epochs={args.epochs}, patience={args.patience}")
 
     # Process markets
     all_frames: list[pl.DataFrame] = []
@@ -430,7 +440,6 @@ def main() -> None:
 
     for idx, (event_id, pq_path, n_events) in enumerate(markets):
         t0 = time.time()
-        print(f"\n[{idx + 1}/{len(markets)}] {event_id} ({n_events:,} events)")
 
         df = process_market(
             event_id,
@@ -449,9 +458,12 @@ def main() -> None:
             n_signals = len(df)
             n_signals_total += n_signals
             all_frames.append(df)
-            print(f"  => {n_signals:,} signals in {elapsed:.1f}s")
+            _print(f"[{idx + 1}/{len(markets)}] {event_id} "
+                   f"({n_events:,} events) => {n_signals:,} signals "
+                   f"in {elapsed:.1f}s")
         else:
-            print(f"  => 0 signals in {elapsed:.1f}s")
+            _print(f"[{idx + 1}/{len(markets)}] {event_id} "
+                   f"({n_events:,} events) => skip in {elapsed:.1f}s")
 
         # Clear GPU cache between markets
         if torch.cuda.is_available():
@@ -460,7 +472,7 @@ def main() -> None:
     total_time = time.time() - t_start
 
     if not all_frames:
-        print("\nNo signals generated across any market.")
+        _print("\nNo signals generated across any market.")
         sys.exit(1)
 
     # Concatenate and write
@@ -469,36 +481,36 @@ def main() -> None:
     result.write_parquet(args.out)
 
     # Summary
-    print("\n" + "=" * 60)
-    print("SIGNAL GENERATION COMPLETE")
-    print("=" * 60)
-    print(f"  Markets processed: {len(markets)}")
-    print(f"  Markets with signals: {len(all_frames)}")
-    print(f"  Total signals: {n_signals_total:,}")
-    print(f"  Output: {args.out}")
-    print(f"  Total time: {total_time:.0f}s ({total_time / 60:.1f}m)")
+    _print("\n" + "=" * 60)
+    _print("SIGNAL GENERATION COMPLETE")
+    _print("=" * 60)
+    _print(f"  Markets processed: {len(markets)}")
+    _print(f"  Markets with signals: {len(all_frames)}")
+    _print(f"  Total signals: {n_signals_total:,}")
+    _print(f"  Output: {args.out}")
+    _print(f"  Total time: {total_time:.0f}s ({total_time / 60:.1f}m)")
 
     # Per-config breakdown
-    print(f"\n  Signal counts by (Δt, threshold):")
+    _print(f"\n  Signal counts by (Δt, threshold):")
     for dt in DELTA_TS:
         for pct in THRESHOLD_PCTS:
             count = result.filter(
                 (pl.col("delta_t_s") == dt) & (pl.col("threshold_pct") == pct)
             ).height
-            print(f"    Δt={dt:3d}s, top {pct:2d}%: {count:,} signals")
+            _print(f"    Δt={dt:3d}s, top {pct:2d}%: {count:,} signals")
 
     # Price change stats
-    print(f"\n  Forward price change by Δt:")
+    _print(f"\n  Forward price change by Δt:")
     for dt in DELTA_TS:
         sub = result.filter(pl.col("delta_t_s") == dt)["price_change"]
         if sub.len() > 0:
-            print(
+            _print(
                 f"    Δt={dt:3d}s: mean={sub.mean():.6f}, "
                 f"std={sub.std():.6f}, "
                 f"median={sub.median():.6f}"
             )
 
-    print("=" * 60)
+    _print("=" * 60)
 
 
 if __name__ == "__main__":
