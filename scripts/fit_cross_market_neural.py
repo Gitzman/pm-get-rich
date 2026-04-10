@@ -12,11 +12,15 @@ Key deliverables:
 
 Usage:
     uv run python scripts/fit_cross_market_neural.py [--gpu 0] [--epochs 200]
+
+    # Train on events ending before a cutoff date:
+    uv run python scripts/fit_cross_market_neural.py --cutoff-date 2026-03-25
 """
 
 from __future__ import annotations
 
 import argparse
+import datetime
 import json
 import math
 import re
@@ -106,8 +110,12 @@ def load_cross_market_data(
     events_dir: Path,
     top_k_wallets: int = 500,
     min_wallet_events: int = 5,
+    cutoff_epoch_s: float | None = None,
 ) -> dict:
     """Load all events, build vocabularies, compute features.
+
+    Args:
+        cutoff_epoch_s: If set, only include events whose end_epoch_s < this value.
 
     Returns dict with all arrays and metadata needed for training.
     """
@@ -115,6 +123,19 @@ def load_cross_market_data(
     all_path = events_dir / "all_events.parquet"
     df = pl.read_parquet(all_path)
     print(f"  Loaded {df.height:,} events from {df['event_id'].n_unique()} markets")
+
+    # Filter by cutoff date if specified
+    if cutoff_epoch_s is not None:
+        keep_eids: set[str] = set()
+        for event_id in df["event_id"].unique().sort().to_list():
+            meta_path = events_dir / event_id / "_meta.json"
+            if meta_path.exists():
+                meta = json.load(open(meta_path))
+                end_s = meta.get("time_range", {}).get("end_epoch_s", 0)
+                if 0 < end_s < cutoff_epoch_s:
+                    keep_eids.add(event_id)
+        df = df.filter(pl.col("event_id").is_in(list(keep_eids)))
+        print(f"  After cutoff filter: {df.height:,} events from {df['event_id'].n_unique()} markets")
 
     # Compute bucket positions
     df = compute_bucket_positions(df, events_dir)
@@ -1099,10 +1120,26 @@ def main() -> None:
     parser.add_argument("--lr", type=float, default=3e-4)
     parser.add_argument("--patience", type=int, default=25)
     parser.add_argument("--gpu", type=int, default=0)
+    parser.add_argument(
+        "--cutoff-date",
+        type=str,
+        default=None,
+        help="Only include events ending before this date (ISO format, e.g. 2026-03-25)",
+    )
     args = parser.parse_args()
+
+    # Parse cutoff date to epoch seconds
+    cutoff_epoch_s = None
+    if args.cutoff_date:
+        cutoff_dt = datetime.datetime.strptime(args.cutoff_date, "%Y-%m-%d").replace(
+            tzinfo=datetime.timezone.utc
+        )
+        cutoff_epoch_s = cutoff_dt.timestamp()
 
     print("=" * 70)
     print("Cross-Market Transformer TPP with Wallet Embeddings")
+    if args.cutoff_date:
+        print(f"  Cutoff: events ending before {args.cutoff_date}")
     print("=" * 70)
 
     if torch.cuda.is_available():
@@ -1115,7 +1152,11 @@ def main() -> None:
 
     # 1. Load data
     print("\n[1/6] Loading and preprocessing cross-market data...")
-    data = load_cross_market_data(args.events_dir, top_k_wallets=args.top_wallets)
+    data = load_cross_market_data(
+        args.events_dir,
+        top_k_wallets=args.top_wallets,
+        cutoff_epoch_s=cutoff_epoch_s,
+    )
 
     # 2. Build model
     print(f"\n[2/6] Building model (d_model={args.d_model}, layers={args.n_layers}, heads={args.n_heads})...")
@@ -1171,7 +1212,7 @@ def main() -> None:
     # Load classical results for comparison
     classical_results: dict[str, float] = {}
     gen_dir = args.out.parent
-    for market_dir in gen_dir.iterdir():
+    for market_dir in (gen_dir.iterdir() if gen_dir.exists() else []):
         results_path = market_dir / "results.json"
         if results_path.exists() and market_dir.name != "cross_market":
             try:
@@ -1233,6 +1274,7 @@ def main() -> None:
     # Results JSON
     results = {
         "model": "cross_market_transformer_tpp",
+        "cutoff_date": args.cutoff_date,
         "architecture": {
             "type": "Transformer TPP with entity embeddings",
             "d_model": args.d_model,
