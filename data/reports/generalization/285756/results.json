@@ -1,0 +1,339 @@
+{
+  "event_id": "285756",
+  "event_title": "Highest temperature in London on March 23?",
+  "model": "multivariate_exponential_hawkes",
+  "time_axis": "seq (monotonic integer ordering)",
+  "time_axis_note": "Median inter-event gap is 0.0s due to second-resolution timestamps; seq provides monotonic ordering",
+  "dimensions": 50,
+  "dimension_type": "(wallet, suit) pairs",
+  "n_top_wallets": 50,
+  "min_events_per_pair": 10,
+  "n_train": 4334,
+  "n_test": 1084,
+  "T_train": 16556.0,
+  "fitted_parameters": {
+    "beta": 0.5,
+    "beta_grid_searched": [
+      0.005,
+      0.01,
+      0.05,
+      0.1,
+      0.5,
+      1.0,
+      2.0
+    ],
+    "mu": [
+      0.00011805220752552758,
+      0.0016893301855598298,
+      0.0013088869643706363,
+      1e-08,
+      0.0008270708927837242,
+      0.0006823930932173849,
+      0.0015379866290658167,
+      0.0008819046192840433,
+      0.0008889359795683018,
+      0.0002135256194212033,
+      0.000774332946610133,
+      0.0009564900601290348,
+      0.0005442711878296711,
+      0.00016726082490015453,
+      0.001330025751243743,
+      0.00026271420363204,
+      0.0009059106765194608,
+      0.0006350144115674347,
+      0.00026799215574520595,
+      0.0002052673441577818,
+      0.0001374631676237355,
+      0.0003180124988294099,
+      0.0005883145180053755,
+      0.00012229676287113061,
+      0.0004566766329596367,
+      0.000528731417075175,
+      0.0003791610487745947,
+      0.0003112209803166403,
+      3.268925451575956e-05,
+      0.00017264809167601592,
+      0.0009047857293596424,
+      0.00013277085389063479,
+      0.0004424345161528287,
+      0.0003390881872589055,
+      0.0007533850356064185,
+      0.00036186689610363164,
+      0.0009993951114725013,
+      0.0003757634644751567,
+      0.0003350299201589335,
+      0.000265114263717715,
+      0.0007115093589083083,
+      0.0012605749681843168,
+      0.0010258215253330476,
+      0.0003544193663161859,
+      0.0007213005644565566,
+      0.000667113800112382,
+      0.0003038772914605929,
+      0.00011929745910861192,
+      0.0005468583579996084,
+      0.0005953871415933703
+    ],
+    "branching_ratio": 0.9479275331432644,
+    "alpha_nonzero_count": 572,
+    "alpha_nonzero_pct": 22.88
+  },
+  "metrics": {
+    "train_nll": 18370.59791577281,
+    "train_nll_per_event": 4.238716639541488,
+    "held_out_avg_log_likelihood": -3.158458596287732
+  },
+  "dimension_labels": [
+    {
+      "idx": 0,
+      "wallet": "0x5b6331e7",
+      "suit": "14C"
+    },
+    {
+      "idx": 1,
+      "wallet": "0x5EA76651",
+      "suit": "17C"
+    },
+    {
+      "idx": 2,
+      "wallet": "0xA708513f",
+      "suit": "17C"
+    },
+    {
+      "idx": 3,
+      "wallet": "0x7C140bE1",
+      "suit": "14C"
+    },
+    {
+      "idx": 4,
+      "wallet": "0x5EA76651",
+      "suit": "15C"
+    },
+    {
+      "idx": 5,
+      "wallet": "0x43cb4Ae1",
+      "suit": "17C"
+    },
+    {
+      "idx": 6,
+      "wallet": "0x39fd921a",
+      "suit": "17C"
+    },
+    {
+      "idx": 7,
+      "wallet": "0x39fd921a",
+      "suit": "15C"
+    },
+    {
+      "idx": 8,
+      "wallet": "0x39fd921a",
+      "suit": "16C"
+    },
+    {
+      "idx": 9,
+      "wallet": "0xA708513f",
+      "suit": "15C"
+    },
+    {
+      "idx": 10,
+      "wallet": "0x5EA76651",
+      "suit": "16C"
+    },
+    {
+      "idx": 11,
+      "wallet": "0x41743af6",
+      "suit": "17C"
+    },
+    {
+      "idx": 12,
+      "wallet": "0xA708513f",
+      "suit": "16C"
+    },
+    {
+      "idx": 13,
+      "wallet": "0xe3726A1b",
+      "suit": "13C"
+    },
+    {
+      "idx": 14,
+      "wallet": "0xDeDd9497",
+      "suit": "17C"
+    },
+    {
+      "idx": 15,
+      "wallet": "0xe3726A1b",
+      "suit": "16C"
+    },
+    {
+      "idx": 16,
+      "wallet": "0x5EA76651",
+      "suit": "18C"
+    },
+    {
+      "idx": 17,
+      "wallet": "0xe3726A1b",
+      "suit": "12C"
+    },
+    {
+      "idx": 18,
+      "wallet": "0xe3726A1b",
+      "suit": "17C"
+    },
+    {
+      "idx": 19,
+      "wallet": "0xe3726A1b",
+      "suit": ">=19C"
+    },
+    {
+      "idx": 20,
+      "wallet": "0xe3726A1b",
+      "suit": "14C"
+    },
+    {
+      "idx": 21,
+      "wallet": "0xe3726A1b",
+      "suit": "18C"
+    },
+    {
+      "idx": 22,
+      "wallet": "0x5EA76651",
+      "suit": "14C"
+    },
+    {
+      "idx": 23,
+      "wallet": "0x43cb4Ae1",
+      "suit": ">=19C"
+    },
+    {
+      "idx": 24,
+      "wallet": "0xe3726A1b",
+      "suit": "11C"
+    },
+    {
+      "idx": 25,
+      "wallet": "0xDeDd9497",
+      "suit": "15C"
+    },
+    {
+      "idx": 26,
+      "wallet": "0xe3726A1b",
+      "suit": "<=9C"
+    },
+    {
+      "idx": 27,
+      "wallet": "0xb1F8AA72",
+      "suit": "15C"
+    },
+    {
+      "idx": 28,
+      "wallet": "0x5EA76651",
+      "suit": "13C"
+    },
+    {
+      "idx": 29,
+      "wallet": "0xe3726A1b",
+      "suit": "15C"
+    },
+    {
+      "idx": 30,
+      "wallet": "0x5EA76651",
+      "suit": "12C"
+    },
+    {
+      "idx": 31,
+      "wallet": "0xEC3Ab7F7",
+      "suit": "14C"
+    },
+    {
+      "idx": 32,
+      "wallet": "0x41743af6",
+      "suit": "15C"
+    },
+    {
+      "idx": 33,
+      "wallet": "0x43cb4Ae1",
+      "suit": "18C"
+    },
+    {
+      "idx": 34,
+      "wallet": "0xA708513f",
+      "suit": "14C"
+    },
+    {
+      "idx": 35,
+      "wallet": "0x43cb4Ae1",
+      "suit": "16C"
+    },
+    {
+      "idx": 36,
+      "wallet": "0x5F390E4B",
+      "suit": "16C"
+    },
+    {
+      "idx": 37,
+      "wallet": "0x41743af6",
+      "suit": "16C"
+    },
+    {
+      "idx": 38,
+      "wallet": "0xe3726A1b",
+      "suit": "10C"
+    },
+    {
+      "idx": 39,
+      "wallet": "0x4e5C2d65",
+      "suit": "15C"
+    },
+    {
+      "idx": 40,
+      "wallet": "0x39fd921a",
+      "suit": "14C"
+    },
+    {
+      "idx": 41,
+      "wallet": "0xB40e8967",
+      "suit": "15C"
+    },
+    {
+      "idx": 42,
+      "wallet": "0xA708513f",
+      "suit": "18C"
+    },
+    {
+      "idx": 43,
+      "wallet": "0x5EA76651",
+      "suit": ">=19C"
+    },
+    {
+      "idx": 44,
+      "wallet": "0x5F390E4B",
+      "suit": "15C"
+    },
+    {
+      "idx": 45,
+      "wallet": "0x5EA76651",
+      "suit": "11C"
+    },
+    {
+      "idx": 46,
+      "wallet": "0x1fd2Cf88",
+      "suit": "14C"
+    },
+    {
+      "idx": 47,
+      "wallet": "0x43cb4Ae1",
+      "suit": "15C"
+    },
+    {
+      "idx": 48,
+      "wallet": "0x15cefFEd",
+      "suit": "16C"
+    },
+    {
+      "idx": 49,
+      "wallet": "0x5EA76651",
+      "suit": "<=9C"
+    }
+  ],
+  "l1_penalty": 0.05
+}

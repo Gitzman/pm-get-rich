@@ -1,0 +1,339 @@
+{
+  "event_id": "262796",
+  "event_title": "Highest temperature in Atlanta on March 14?",
+  "model": "multivariate_exponential_hawkes",
+  "time_axis": "seq (monotonic integer ordering)",
+  "time_axis_note": "Median inter-event gap is 0.0s due to second-resolution timestamps; seq provides monotonic ordering",
+  "dimensions": 50,
+  "dimension_type": "(wallet, suit) pairs",
+  "n_top_wallets": 50,
+  "min_events_per_pair": 10,
+  "n_train": 4938,
+  "n_test": 1235,
+  "T_train": 11981.0,
+  "fitted_parameters": {
+    "beta": 0.1,
+    "beta_grid_searched": [
+      0.005,
+      0.01,
+      0.05,
+      0.1,
+      0.5,
+      1.0,
+      2.0
+    ],
+    "mu": [
+      1e-08,
+      1e-08,
+      0.00010302700357633798,
+      1e-08,
+      1e-08,
+      0.00020494875019998977,
+      0.00018413655474992338,
+      1e-08,
+      0.0002932293085571578,
+      1e-08,
+      1e-08,
+      1e-08,
+      6.051110088479858e-05,
+      1e-08,
+      0.00022615047058616988,
+      0.00039497894851074297,
+      1e-08,
+      0.000157220402904342,
+      0.00022723929362272697,
+      8.078716189734611e-05,
+      0.00020686885433932173,
+      0.0002788163800591086,
+      0.00013317736784650836,
+      0.00010931902075456314,
+      1e-08,
+      1e-08,
+      7.025936315203671e-05,
+      6.431258599900589e-05,
+      1e-08,
+      9.70978930205109e-05,
+      0.0002203177382244957,
+      0.0001333726476780524,
+      1e-08,
+      1e-08,
+      1e-08,
+      1e-08,
+      1e-08,
+      9.107821537365584e-05,
+      1e-08,
+      1e-08,
+      1e-08,
+      1e-08,
+      3.4871610320828895e-05,
+      0.00033357225410418677,
+      7.604599179573253e-05,
+      1e-08,
+      2.4570159452141907e-05,
+      0.00022621385353940778,
+      0.00012532432271659654,
+      1e-08
+    ],
+    "branching_ratio": 1.1759809725056978,
+    "alpha_nonzero_count": 578,
+    "alpha_nonzero_pct": 23.12
+  },
+  "metrics": {
+    "train_nll": 13744.602279498304,
+    "train_nll_per_event": 2.7834350505261853,
+    "held_out_avg_log_likelihood": -5.3680696388163
+  },
+  "dimension_labels": [
+    {
+      "idx": 0,
+      "wallet": "0x1B3B0eAE",
+      "suit": "66-67F"
+    },
+    {
+      "idx": 1,
+      "wallet": "0x7E243e99",
+      "suit": "72-73F"
+    },
+    {
+      "idx": 2,
+      "wallet": "0x7E243e99",
+      "suit": "<=65F"
+    },
+    {
+      "idx": 3,
+      "wallet": "0x046E6956",
+      "suit": "<=65F"
+    },
+    {
+      "idx": 4,
+      "wallet": "0x7E243e99",
+      "suit": "70-71F"
+    },
+    {
+      "idx": 5,
+      "wallet": "0x7FD57DeE",
+      "suit": "68-69F"
+    },
+    {
+      "idx": 6,
+      "wallet": "0x624Ea05E",
+      "suit": "70-71F"
+    },
+    {
+      "idx": 7,
+      "wallet": "0x6bf76476",
+      "suit": ">=80F"
+    },
+    {
+      "idx": 8,
+      "wallet": "0x594edB91",
+      "suit": "72-73F"
+    },
+    {
+      "idx": 9,
+      "wallet": "0xb8ee7dBE",
+      "suit": "72-73F"
+    },
+    {
+      "idx": 10,
+      "wallet": "0x84571F1B",
+      "suit": "66-67F"
+    },
+    {
+      "idx": 11,
+      "wallet": "0x6bf76476",
+      "suit": "78-79F"
+    },
+    {
+      "idx": 12,
+      "wallet": "0xdcFA3917",
+      "suit": "76-77F"
+    },
+    {
+      "idx": 13,
+      "wallet": "0x6bf76476",
+      "suit": "74-75F"
+    },
+    {
+      "idx": 14,
+      "wallet": "0x6bf76476",
+      "suit": "76-77F"
+    },
+    {
+      "idx": 15,
+      "wallet": "0x6bf76476",
+      "suit": "70-71F"
+    },
+    {
+      "idx": 16,
+      "wallet": "0x6bf76476",
+      "suit": "72-73F"
+    },
+    {
+      "idx": 17,
+      "wallet": "0x6bf76476",
+      "suit": "68-69F"
+    },
+    {
+      "idx": 18,
+      "wallet": "0x6bf76476",
+      "suit": "<=65F"
+    },
+    {
+      "idx": 19,
+      "wallet": "0xdab36385",
+      "suit": "78-79F"
+    },
+    {
+      "idx": 20,
+      "wallet": "0x6bf76476",
+      "suit": "66-67F"
+    },
+    {
+      "idx": 21,
+      "wallet": "0x5F390E4B",
+      "suit": "76-77F"
+    },
+    {
+      "idx": 22,
+      "wallet": "0xEEEcd27B",
+      "suit": ">=80F"
+    },
+    {
+      "idx": 23,
+      "wallet": "0x5F390E4B",
+      "suit": "78-79F"
+    },
+    {
+      "idx": 24,
+      "wallet": "0x6ffb4354",
+      "suit": "70-71F"
+    },
+    {
+      "idx": 25,
+      "wallet": "0xdcFA3917",
+      "suit": "78-79F"
+    },
+    {
+      "idx": 26,
+      "wallet": "0x594edB91",
+      "suit": "66-67F"
+    },
+    {
+      "idx": 27,
+      "wallet": "0x66C62566",
+      "suit": "<=65F"
+    },
+    {
+      "idx": 28,
+      "wallet": "0xaF15E53d",
+      "suit": "70-71F"
+    },
+    {
+      "idx": 29,
+      "wallet": "0xa37d1d1A",
+      "suit": "76-77F"
+    },
+    {
+      "idx": 30,
+      "wallet": "0x39fd921a",
+      "suit": "76-77F"
+    },
+    {
+      "idx": 31,
+      "wallet": "0x39fd921a",
+      "suit": ">=80F"
+    },
+    {
+      "idx": 32,
+      "wallet": "0x594edB91",
+      "suit": "<=65F"
+    },
+    {
+      "idx": 33,
+      "wallet": "0x046E6956",
+      "suit": "72-73F"
+    },
+    {
+      "idx": 34,
+      "wallet": "0xEEEcd27B",
+      "suit": "76-77F"
+    },
+    {
+      "idx": 35,
+      "wallet": "0x39fd921a",
+      "suit": "78-79F"
+    },
+    {
+      "idx": 36,
+      "wallet": "0x7FD57DeE",
+      "suit": "70-71F"
+    },
+    {
+      "idx": 37,
+      "wallet": "0x5F390E4B",
+      "suit": ">=80F"
+    },
+    {
+      "idx": 38,
+      "wallet": "0x919Db072",
+      "suit": "76-77F"
+    },
+    {
+      "idx": 39,
+      "wallet": "0x39fd921a",
+      "suit": "72-73F"
+    },
+    {
+      "idx": 40,
+      "wallet": "0x2Aa1D2C2",
+      "suit": "70-71F"
+    },
+    {
+      "idx": 41,
+      "wallet": "0x39fd921a",
+      "suit": "70-71F"
+    },
+    {
+      "idx": 42,
+      "wallet": "0x39fd921a",
+      "suit": "68-69F"
+    },
+    {
+      "idx": 43,
+      "wallet": "0xb8fCA82F",
+      "suit": ">=80F"
+    },
+    {
+      "idx": 44,
+      "wallet": "0x39fd921a",
+      "suit": "74-75F"
+    },
+    {
+      "idx": 45,
+      "wallet": "0x5F390E4B",
+      "suit": "72-73F"
+    },
+    {
+      "idx": 46,
+      "wallet": "0x39fd921a",
+      "suit": "66-67F"
+    },
+    {
+      "idx": 47,
+      "wallet": "0x5F390E4B",
+      "suit": "74-75F"
+    },
+    {
+      "idx": 48,
+      "wallet": "0xEEEcd27B",
+      "suit": "74-75F"
+    },
+    {
+      "idx": 49,
+      "wallet": "0xEEEcd27B",
+      "suit": "78-79F"
+    }
+  ],
+  "l1_penalty": 0.05
+}

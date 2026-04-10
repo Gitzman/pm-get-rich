@@ -1,0 +1,477 @@
+{
+  "n_markets_total": 25,
+  "n_classical_fitted": 25,
+  "n_neural_fitted": 0,
+  "cities": [
+    "Atlanta",
+    "Chicago",
+    "London",
+    "Miami",
+    "NYC",
+    "Seoul",
+    "Shanghai",
+    "Toronto",
+    "global"
+  ],
+  "aggregate_metrics": {
+    "classical": {
+      "n_fitted": 25,
+      "mean_held_out_ll": -5.287811958755692,
+      "min_held_out_ll": -6.817534207320303,
+      "max_held_out_ll": -3.158458596287732
+    },
+    "neural": {
+      "n_fitted": 0,
+      "mean_held_out_ll": null,
+      "min_held_out_ll": null,
+      "max_held_out_ll": null
+    },
+    "comparison": {
+      "n_both_fitted": 0,
+      "neural_beats_classical": 0,
+      "neural_beats_pct": null
+    }
+  },
+  "per_city": {
+    "Atlanta": {
+      "n_markets": 1,
+      "classical_mean_ll": -5.3680696388163,
+      "neural_mean_ll": null,
+      "n_classical": 1,
+      "n_neural": 0
+    },
+    "Chicago": {
+      "n_markets": 1,
+      "classical_mean_ll": -6.2226718335944815,
+      "neural_mean_ll": null,
+      "n_classical": 1,
+      "n_neural": 0
+    },
+    "London": {
+      "n_markets": 4,
+      "classical_mean_ll": -4.706676617115327,
+      "neural_mean_ll": null,
+      "n_classical": 4,
+      "n_neural": 0
+    },
+    "Miami": {
+      "n_markets": 1,
+      "classical_mean_ll": -6.817534207320303,
+      "neural_mean_ll": null,
+      "n_classical": 1,
+      "n_neural": 0
+    },
+    "NYC": {
+      "n_markets": 4,
+      "classical_mean_ll": -5.291320964226776,
+      "neural_mean_ll": null,
+      "n_classical": 4,
+      "n_neural": 0
+    },
+    "Seoul": {
+      "n_markets": 7,
+      "classical_mean_ll": -5.6238708610735175,
+      "neural_mean_ll": null,
+      "n_classical": 7,
+      "n_neural": 0
+    },
+    "Shanghai": {
+      "n_markets": 3,
+      "classical_mean_ll": -5.366351090860004,
+      "neural_mean_ll": null,
+      "n_classical": 3,
+      "n_neural": 0
+    },
+    "Toronto": {
+      "n_markets": 1,
+      "classical_mean_ll": -4.829450656524519,
+      "neural_mean_ll": null,
+      "n_classical": 1,
+      "n_neural": 0
+    },
+    "global": {
+      "n_markets": 3,
+      "classical_mean_ll": -4.499811002391218,
+      "neural_mean_ll": null,
+      "n_classical": 3,
+      "n_neural": 0
+    }
+  },
+  "per_market": [
+    {
+      "event_id": "295980",
+      "city": "Seoul",
+      "date": "March 26",
+      "classical": {
+        "held_out_avg_log_likelihood": -5.500663568774729,
+        "branching_ratio": 1.0531624950321599,
+        "dimensions": 50,
+        "n_train": 5569,
+        "n_test": 1393,
+        "beta": 0.5
+      },
+      "neural": {},
+      "status": "classical_only"
+    },
+    {
+      "event_id": "302794",
+      "city": "Seoul",
+      "date": "March 28",
+      "classical": {
+        "held_out_avg_log_likelihood": -5.944004417469466,
+        "branching_ratio": 0.951785510719328,
+        "dimensions": 50,
+        "n_train": 4360,
+        "n_test": 1090,
+        "beta": 0.5
+      },
+      "neural": {},
+      "status": "classical_only"
+    },
+    {
+      "event_id": "299412",
+      "city": "Seoul",
+      "date": "March 27",
+      "classical": {
+        "held_out_avg_log_likelihood": -5.373973034480921,
+        "branching_ratio": 0.9044741317126432,
+        "dimensions": 50,
+        "n_train": 3878,
+        "n_test": 970,
+        "beta": 0.5
+      },
+      "neural": {},
+      "status": "classical_only"
+    },
+    {
+      "event_id": "285764",
+      "city": "Seoul",
+      "date": "March 23",
+      "classical": {
+        "held_out_avg_log_likelihood": -6.523260463825491,
+        "branching_ratio": 0.9329922029739957,
+        "dimensions": 50,
+        "n_train": 3850,
+        "n_test": 963,
+        "beta": 0.5
+      },
+      "neural": {},
+      "status": "classical_only"
+    },
+    {
+      "event_id": "289192",
+      "city": "Seoul",
+      "date": "March 24",
+      "classical": {
+        "held_out_avg_log_likelihood": -4.987433467480174,
+        "branching_ratio": 0.9678898767775734,
+        "dimensions": 50,
+        "n_train": 3641,
+        "n_test": 911,
+        "beta": 0.5
+      },
+      "neural": {},
+      "status": "classical_only"
+    },
+    {
+      "event_id": "306323",
+      "city": "Seoul",
+      "date": "March 29",
+      "classical": {
+        "held_out_avg_log_likelihood": -6.584275595689835,
+        "branching_ratio": 0.9660984721494134,
+        "dimensions": 50,
+        "n_train": 4155,
+        "n_test": 1039,
+        "beta": 0.5
+      },
+      "neural": {},
+      "status": "classical_only"
+    },
+    {
+      "event_id": "292561",
+      "city": "Seoul",
+      "date": "March 25",
+      "classical": {
+        "held_out_avg_log_likelihood": -4.453485479794004,
+        "branching_ratio": 0.9916679007357696,
+        "dimensions": 50,
+        "n_train": 3122,
+        "n_test": 781,
+        "beta": 0.5
+      },
+      "neural": {},
+      "status": "classical_only"
+    },
+    {
+      "event_id": "282546",
+      "city": "NYC",
+      "date": "March 22",
+      "classical": {
+        "held_out_avg_log_likelihood": -5.5513765968586,
+        "branching_ratio": 0.9115093940071948,
+        "dimensions": 50,
+        "n_train": 5574,
+        "n_test": 1394,
+        "beta": 0.5
+      },
+      "neural": {},
+      "status": "classical_only"
+    },
+    {
+      "event_id": "313358",
+      "city": "NYC",
+      "date": "March 31",
+      "classical": {
+        "held_out_avg_log_likelihood": -5.044139217524605,
+        "branching_ratio": 0.9751458133052776,
+        "dimensions": 50,
+        "n_train": 3967,
+        "n_test": 992,
+        "beta": 0.1
+      },
+      "neural": {},
+      "status": "classical_only"
+    },
+    {
+      "event_id": "289197",
+      "city": "NYC",
+      "date": "March 24",
+      "classical": {
+        "held_out_avg_log_likelihood": -5.602387129541625,
+        "branching_ratio": 1.0095519746064228,
+        "dimensions": 50,
+        "n_train": 3104,
+        "n_test": 777,
+        "beta": 0.5
+      },
+      "neural": {},
+      "status": "classical_only"
+    },
+    {
+      "event_id": "265850",
+      "city": "NYC",
+      "date": "March 16",
+      "classical": {
+        "held_out_avg_log_likelihood": -4.9673809129822715,
+        "branching_ratio": 0.9956346786783024,
+        "dimensions": 50,
+        "n_train": 4250,
+        "n_test": 1063,
+        "beta": 0.5
+      },
+      "neural": {},
+      "status": "classical_only"
+    },
+    {
+      "event_id": "285756",
+      "city": "London",
+      "date": "March 23",
+      "classical": {
+        "held_out_avg_log_likelihood": -3.158458596287732,
+        "branching_ratio": 0.9479275331432644,
+        "dimensions": 50,
+        "n_train": 4334,
+        "n_test": 1084,
+        "beta": 0.5
+      },
+      "neural": {},
+      "status": "classical_only"
+    },
+    {
+      "event_id": "306301",
+      "city": "London",
+      "date": "March 29",
+      "classical": {
+        "held_out_avg_log_likelihood": -5.705776664898405,
+        "branching_ratio": 1.0576047722756714,
+        "dimensions": 50,
+        "n_train": 5245,
+        "n_test": 1312,
+        "beta": 0.5
+      },
+      "neural": {},
+      "status": "classical_only"
+    },
+    {
+      "event_id": "268916",
+      "city": "London",
+      "date": "March 18",
+      "classical": {
+        "held_out_avg_log_likelihood": -4.600545881389083,
+        "branching_ratio": 1.0,
+        "dimensions": 50,
+        "n_train": 4153,
+        "n_test": 1039,
+        "beta": 0.5
+      },
+      "neural": {},
+      "status": "classical_only"
+    },
+    {
+      "event_id": "289183",
+      "city": "London",
+      "date": "March 24",
+      "classical": {
+        "held_out_avg_log_likelihood": -5.3619253258860855,
+        "branching_ratio": 0.9841580470622695,
+        "dimensions": 50,
+        "n_train": 3379,
+        "n_test": 845,
+        "beta": 0.5
+      },
+      "neural": {},
+      "status": "classical_only"
+    },
+    {
+      "event_id": "282558",
+      "city": "Shanghai",
+      "date": "March 22",
+      "classical": {
+        "held_out_avg_log_likelihood": -5.804496620184993,
+        "branching_ratio": 0.9432564982660496,
+        "dimensions": 50,
+        "n_train": 3982,
+        "n_test": 996,
+        "beta": 0.5
+      },
+      "neural": {},
+      "status": "classical_only"
+    },
+    {
+      "event_id": "306340",
+      "city": "Shanghai",
+      "date": "March 29",
+      "classical": {
+        "held_out_avg_log_likelihood": -5.597540365141468,
+        "branching_ratio": 1.0438746412165234,
+        "dimensions": 50,
+        "n_train": 6008,
+        "n_test": 1502,
+        "beta": 0.1
+      },
+      "neural": {},
+      "status": "classical_only"
+    },
+    {
+      "event_id": "292578",
+      "city": "Shanghai",
+      "date": "March 25",
+      "classical": {
+        "held_out_avg_log_likelihood": -4.69701628725355,
+        "branching_ratio": 0.9746465736201793,
+        "dimensions": 50,
+        "n_train": 3736,
+        "n_test": 935,
+        "beta": 0.5
+      },
+      "neural": {},
+      "status": "classical_only"
+    },
+    {
+      "event_id": "15031",
+      "city": "global",
+      "date": "December 2024",
+      "classical": {
+        "held_out_avg_log_likelihood": -4.130485711653662,
+        "branching_ratio": 0.8924207766878033,
+        "dimensions": 50,
+        "n_train": 8164,
+        "n_test": 2042,
+        "beta": 0.5
+      },
+      "neural": {},
+      "status": "classical_only"
+    },
+    {
+      "event_id": "193611",
+      "city": "global",
+      "date": "February 2026",
+      "classical": {
+        "held_out_avg_log_likelihood": -4.773549145457469,
+        "branching_ratio": 0.9976874908927237,
+        "dimensions": 50,
+        "n_train": 5660,
+        "n_test": 1415,
+        "beta": 0.5
+      },
+      "neural": {},
+      "status": "classical_only"
+    },
+    {
+      "event_id": "16712",
+      "city": "global",
+      "date": "January 2025",
+      "classical": {
+        "held_out_avg_log_likelihood": -4.595398150062521,
+        "branching_ratio": 0.9259618894525314,
+        "dimensions": 50,
+        "n_train": 6547,
+        "n_test": 1637,
+        "beta": 0.5
+      },
+      "neural": {},
+      "status": "classical_only"
+    },
+    {
+      "event_id": "295989",
+      "city": "Chicago",
+      "date": "March 26",
+      "classical": {
+        "held_out_avg_log_likelihood": -6.2226718335944815,
+        "branching_ratio": 0.9853920298531896,
+        "dimensions": 50,
+        "n_train": 4279,
+        "n_test": 1070,
+        "beta": 0.5
+      },
+      "neural": {},
+      "status": "classical_only"
+    },
+    {
+      "event_id": "306331",
+      "city": "Miami",
+      "date": "March 29",
+      "classical": {
+        "held_out_avg_log_likelihood": -6.817534207320303,
+        "branching_ratio": 1.0715870696001895,
+        "dimensions": 50,
+        "n_train": 6746,
+        "n_test": 1687,
+        "beta": 0.1
+      },
+      "neural": {},
+      "status": "classical_only"
+    },
+    {
+      "event_id": "262796",
+      "city": "Atlanta",
+      "date": "March 14",
+      "classical": {
+        "held_out_avg_log_likelihood": -5.3680696388163,
+        "branching_ratio": 1.1759809725056978,
+        "dimensions": 50,
+        "n_train": 4938,
+        "n_test": 1235,
+        "beta": 0.1
+      },
+      "neural": {},
+      "status": "classical_only"
+    },
+    {
+      "event_id": "275646",
+      "city": "Toronto",
+      "date": "March 20",
+      "classical": {
+        "held_out_avg_log_likelihood": -4.829450656524519,
+        "branching_ratio": 0.9619854269717919,
+        "dimensions": 50,
+        "n_train": 2524,
+        "n_test": 632,
+        "beta": 0.5
+      },
+      "neural": {},
+      "status": "classical_only"
+    }
+  ]
+}
