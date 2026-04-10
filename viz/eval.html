@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Full-Scale Eval: Holdout Results - PM Get Rich</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace;
+            background: #1a1a2e;
+            color: #e0e0e0;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        header {
+            background: #16213e;
+            padding: 1rem;
+            border-bottom: 2px solid #0f3460;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header h1 { font-size: 1.2rem; color: #53dba1; }
+        header .subtitle { font-size: 0.8rem; color: #888; }
+        header nav a {
+            color: #53dba1;
+            text-decoration: none;
+            font-size: 0.85rem;
+            margin-left: 1rem;
+        }
+        header nav a:hover { text-decoration: underline; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 1.5rem 1rem; }
+
+        h2 {
+            color: #53dba1;
+            font-size: 1.1rem;
+            margin: 2rem 0 1rem;
+            padding-bottom: 0.3rem;
+            border-bottom: 1px solid #0f3460;
+        }
+        h2:first-of-type { margin-top: 0.5rem; }
+
+        .summary-box {
+            background: #16213e;
+            border: 1px solid #0f3460;
+            border-left: 4px solid #53dba1;
+            border-radius: 6px;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+        .summary-box p { margin-bottom: 0.5rem; font-size: 0.9rem; }
+        .summary-box .headline {
+            font-size: 1.1rem;
+            color: #53dba1;
+            font-weight: bold;
+            margin-bottom: 0.75rem;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+        .card {
+            background: #16213e;
+            border-radius: 8px;
+            padding: 1rem;
+            border: 1px solid #0f3460;
+        }
+        .card .label { font-size: 0.7rem; color: #888; text-transform: uppercase; letter-spacing: 0.05em; }
+        .card .value { font-size: 1.4rem; color: #53dba1; font-weight: bold; margin-top: 0.25rem; }
+        .card .detail { font-size: 0.75rem; color: #888; margin-top: 0.25rem; }
+
+        .plot-section {
+            margin-bottom: 2rem;
+        }
+        .plot-section img {
+            max-width: 100%;
+            border-radius: 6px;
+            border: 1px solid #0f3460;
+            background: #fff;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+        }
+        th {
+            background: #0f3460;
+            padding: 0.5rem;
+            text-align: left;
+            position: sticky;
+            top: 0;
+            white-space: nowrap;
+            cursor: pointer;
+            user-select: none;
+        }
+        th:hover { background: #1a5276; }
+        th .sort-arrow { font-size: 0.65rem; margin-left: 0.3rem; color: #888; }
+        td {
+            padding: 0.4rem 0.5rem;
+            border-bottom: 1px solid #1a2744;
+            white-space: nowrap;
+        }
+        tr:hover { background: rgba(83, 219, 161, 0.05); }
+        .tag-seen {
+            background: #1a5276;
+            color: #53dba1;
+            padding: 0.15rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+        }
+        .tag-unseen {
+            background: #5c2d0f;
+            color: #f0a500;
+            padding: 0.15rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+        }
+        .num-pos { color: #4CAF50; }
+        .num-neg { color: #F44336; }
+        .null { color: #555; font-style: italic; }
+        .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+        .gen-summary {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .gen-card {
+            background: #16213e;
+            border: 1px solid #0f3460;
+            border-radius: 6px;
+            padding: 1rem;
+        }
+        .gen-card .gen-label { font-size: 0.75rem; color: #888; text-transform: uppercase; margin-bottom: 0.5rem; }
+        .gen-card .gen-value { font-size: 1.3rem; color: #53dba1; font-weight: bold; }
+        .gen-card .gen-detail { font-size: 0.8rem; color: #aaa; margin-top: 0.25rem; }
+
+        #status {
+            background: #16213e;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            font-size: 0.85rem;
+            border-left: 3px solid #f0a500;
+        }
+        #status.ready { border-left-color: #53dba1; }
+        #status.error { border-left-color: #e74c3c; }
+
+        @media (max-width: 600px) {
+            .dashboard { grid-template-columns: repeat(2, 1fr); }
+            .gen-summary { grid-template-columns: 1fr; }
+            .card .value { font-size: 1.1rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <h1>PM Get Rich</h1>
+            <div class="subtitle">Full-Scale Eval: Holdout Results</div>
+        </div>
+        <nav>
+            <a href="index.html">Explorer</a>
+            <a href="comparison.html">Single-Market</a>
+            <a href="generalization.html">Generalization</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div id="status">Loading eval results...</div>
+
+        <div id="content" style="display:none">
+            <div class="summary-box">
+                <div class="headline" id="headline"></div>
+                <p id="summary-detail"></p>
+            </div>
+
+            <div class="dashboard" id="dashboard"></div>
+
+            <h2>Generalization: Seen vs Unseen Cities</h2>
+            <div class="gen-summary" id="gen-summary"></div>
+
+            <h2>Per-City Log-Likelihood</h2>
+            <div class="plot-section">
+                <img src="data/eval/holdout_by_city.png" alt="Holdout LL by City">
+            </div>
+            <div class="table-wrap">
+                <table id="city-table">
+                    <thead>
+                        <tr>
+                            <th data-col="city" data-type="string">City <span class="sort-arrow"></span></th>
+                            <th data-col="status" data-type="string">Status <span class="sort-arrow"></span></th>
+                            <th data-col="n_events" data-type="number">Events <span class="sort-arrow"></span></th>
+                            <th data-col="n_eval" data-type="number">Evaluated <span class="sort-arrow"></span></th>
+                            <th data-col="neural_ll" data-type="number">Neural Mean LL <span class="sort-arrow"></span></th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <h2>Per-Date Log-Likelihood</h2>
+            <div class="plot-section">
+                <img src="data/eval/holdout_by_date.png" alt="Holdout LL by Date">
+            </div>
+            <div class="table-wrap">
+                <table id="date-table">
+                    <thead>
+                        <tr>
+                            <th data-col="date" data-type="string">Date <span class="sort-arrow"></span></th>
+                            <th data-col="n_events" data-type="number">Events <span class="sort-arrow"></span></th>
+                            <th data-col="n_eval" data-type="number">Evaluated <span class="sort-arrow"></span></th>
+                            <th data-col="neural_ll" data-type="number">Neural Mean LL <span class="sort-arrow"></span></th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let cityData = [];
+        let dateData = [];
+        let citySortCol = 'city';
+        let citySortAsc = true;
+        let dateSortCol = 'date';
+        let dateSortAsc = true;
+
+        function fmtLL(val) {
+            if (val === null || val === undefined) return '<span class="null">N/A</span>';
+            return val.toFixed(3);
+        }
+
+        function renderCityTable() {
+            cityData.sort((a, b) => {
+                let va = a[citySortCol], vb = b[citySortCol];
+                if (va === null) return 1;
+                if (vb === null) return -1;
+                if (typeof va === 'string') va = va.toLowerCase();
+                if (typeof vb === 'string') vb = vb.toLowerCase();
+                if (va < vb) return citySortAsc ? -1 : 1;
+                if (va > vb) return citySortAsc ? 1 : -1;
+                return 0;
+            });
+
+            const tbody = document.querySelector('#city-table tbody');
+            tbody.innerHTML = cityData.map(c => `<tr>
+                <td>${c.city}</td>
+                <td><span class="${c.status === 'Seen' ? 'tag-seen' : 'tag-unseen'}">${c.status}</span></td>
+                <td>${c.n_events}</td>
+                <td>${c.n_eval}</td>
+                <td>${fmtLL(c.neural_ll)}</td>
+            </tr>`).join('');
+
+            document.querySelectorAll('#city-table th').forEach(th => {
+                const arrow = th.querySelector('.sort-arrow');
+                if (th.dataset.col === citySortCol) {
+                    arrow.textContent = citySortAsc ? ' \u25B2' : ' \u25BC';
+                } else {
+                    arrow.textContent = '';
+                }
+            });
+        }
+
+        function renderDateTable() {
+            dateData.sort((a, b) => {
+                let va = a[dateSortCol], vb = b[dateSortCol];
+                if (va === null) return 1;
+                if (vb === null) return -1;
+                if (typeof va === 'string') va = va.toLowerCase();
+                if (typeof vb === 'string') vb = vb.toLowerCase();
+                if (va < vb) return dateSortAsc ? -1 : 1;
+                if (va > vb) return dateSortAsc ? 1 : -1;
+                return 0;
+            });
+
+            const tbody = document.querySelector('#date-table tbody');
+            tbody.innerHTML = dateData.map(d => `<tr>
+                <td>${d.date}</td>
+                <td>${d.n_events}</td>
+                <td>${d.n_eval}</td>
+                <td>${fmtLL(d.neural_ll)}</td>
+            </tr>`).join('');
+
+            document.querySelectorAll('#date-table th').forEach(th => {
+                const arrow = th.querySelector('.sort-arrow');
+                if (th.dataset.col === dateSortCol) {
+                    arrow.textContent = dateSortAsc ? ' \u25B2' : ' \u25BC';
+                } else {
+                    arrow.textContent = '';
+                }
+            });
+        }
+
+        document.querySelectorAll('#city-table th').forEach(th => {
+            th.addEventListener('click', () => {
+                const col = th.dataset.col;
+                if (citySortCol === col) { citySortAsc = !citySortAsc; }
+                else { citySortCol = col; citySortAsc = true; }
+                renderCityTable();
+            });
+        });
+
+        document.querySelectorAll('#date-table th').forEach(th => {
+            th.addEventListener('click', () => {
+                const col = th.dataset.col;
+                if (dateSortCol === col) { dateSortAsc = !dateSortAsc; }
+                else { dateSortCol = col; dateSortAsc = true; }
+                renderDateTable();
+            });
+        });
+
+        async function init() {
+            const statusEl = document.getElementById('status');
+            try {
+                const resp = await fetch('data/eval/eval_holdout.json');
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                const data = await resp.json();
+
+                // Summary
+                const overall = data.overall;
+                const gen = data.generalization;
+                document.getElementById('headline').textContent =
+                    `Neural Holdout LL: ${overall.neural_mean_ll.toFixed(3)} \u00B1 ${overall.neural_std_ll.toFixed(3)}`;
+                document.getElementById('summary-detail').textContent =
+                    `Cross-market transformer evaluated on ${data.n_neural_evaluated} held-out events ` +
+                    `(March 25\u201331, ${data.cutoff_date} cutoff). ` +
+                    `${gen.n_seen_cities} seen cities, ${gen.n_unseen_cities} unseen cities. ` +
+                    `Neural inference: ${data.timing.neural_eval_seconds}s.`;
+
+                // Dashboard cards
+                const cards = [
+                    { label: 'Mean LL', value: overall.neural_mean_ll.toFixed(3), detail: `\u00B1 ${overall.neural_std_ll.toFixed(3)}` },
+                    { label: 'Holdout Events', value: data.n_holdout_events, detail: `${data.n_neural_evaluated} evaluated` },
+                    { label: 'Cities', value: Object.keys(data.per_city).length, detail: `${gen.n_seen_cities} seen, ${gen.n_unseen_cities} unseen` },
+                    { label: 'Date Range', value: 'Mar 25\u201331', detail: `${Object.keys(data.per_date).length} dates` },
+                    { label: 'Inference Time', value: `${data.timing.neural_eval_seconds}s`, detail: 'Neural only' },
+                ];
+                document.getElementById('dashboard').innerHTML = cards.map(c =>
+                    `<div class="card"><div class="label">${c.label}</div><div class="value">${c.value}</div>${c.detail ? `<div class="detail">${c.detail}</div>` : ''}</div>`
+                ).join('');
+
+                // Generalization cards
+                document.getElementById('gen-summary').innerHTML = `
+                    <div class="gen-card">
+                        <div class="gen-label">Seen Cities (${gen.n_seen_cities})</div>
+                        <div class="gen-value">${gen.seen_city_neural_mean_ll.toFixed(3)}</div>
+                        <div class="gen-detail">Mean LL across training cities</div>
+                    </div>
+                    <div class="gen-card">
+                        <div class="gen-label">Unseen Cities (${gen.n_unseen_cities})</div>
+                        <div class="gen-value">${gen.unseen_city_neural_mean_ll.toFixed(3)}</div>
+                        <div class="gen-detail">Mean LL across held-out cities</div>
+                    </div>
+                `;
+
+                // Per-city table data
+                cityData = Object.entries(data.per_city).map(([city, v]) => ({
+                    city,
+                    status: v.city_in_training ? 'Seen' : 'Unseen',
+                    n_events: v.n_events,
+                    n_eval: v.n_neural_eval,
+                    neural_ll: v.neural_mean_ll,
+                }));
+                renderCityTable();
+
+                // Per-date table data
+                dateData = Object.entries(data.per_date).map(([date, v]) => ({
+                    date,
+                    n_events: v.n_events,
+                    n_eval: v.n_neural_eval,
+                    neural_ll: v.neural_mean_ll,
+                }));
+                dateSortCol = 'date';
+                dateSortAsc = true;
+                renderDateTable();
+
+                document.getElementById('content').style.display = 'block';
+                statusEl.textContent = 'Eval results loaded';
+                statusEl.className = 'ready';
+            } catch (e) {
+                statusEl.textContent = `Error loading eval data: ${e.message}`;
+                statusEl.className = 'error';
+                console.error('Init failed:', e);
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
