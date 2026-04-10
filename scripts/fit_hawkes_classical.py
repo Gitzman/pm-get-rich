@@ -1,4 +1,4 @@
-"""Classical multivariate exponential Hawkes baseline for Seoul March 26.
+"""Classical multivariate exponential Hawkes baseline.
 
 Fits a multivariate Hawkes process with exponential kernels on the top 50
 (wallet, suit) pairs by event count. Uses seq as the time axis since median
@@ -480,9 +480,18 @@ def main() -> None:
     )
     args = parser.parse_args()
 
+    # Load event metadata if available
+    meta_path = args.parquet.parent / "_meta.json"
+    event_meta = {}
+    if meta_path.exists():
+        with open(meta_path) as f:
+            event_meta = json.load(f)
+    event_id = event_meta.get("event_id", args.parquet.parent.name)
+    event_title = event_meta.get("event_title", "unknown")
+
     print("=" * 60)
     print("Classical Multivariate Hawkes Baseline")
-    print("Event: Seoul March 26 (295980)")
+    print(f"Event: {event_title} ({event_id})")
     print("=" * 60)
 
     # 1. Load and prepare data
@@ -567,8 +576,8 @@ def main() -> None:
     print("\n[5/5] Saving results...")
 
     results = {
-        "event_id": "295980",
-        "event_title": "Highest temperature in Seoul on March 26",
+        "event_id": event_id,
+        "event_title": event_title,
         "model": "multivariate_exponential_hawkes",
         "time_axis": "seq (monotonic integer ordering)",
         "time_axis_note": "Median inter-event gap is 0.0s due to second-resolution timestamps; seq provides monotonic ordering",

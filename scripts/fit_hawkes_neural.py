@@ -1,4 +1,4 @@
-"""Neural Hawkes Process (continuous-time LSTM) for Seoul March 26.
+"""Neural Hawkes Process (continuous-time LSTM).
 
 Implements the Mei & Eisner (2017) continuous-time LSTM Hawkes model.
 Between events, the LSTM cell state decays exponentially toward a target,
@@ -545,9 +545,18 @@ def main() -> None:
     parser.add_argument("--out", type=Path, default=Path("data/reports/hawkes_neural"))
     args = parser.parse_args()
 
+    # Load event metadata if available
+    meta_path = args.parquet.parent / "_meta.json"
+    event_meta = {}
+    if meta_path.exists():
+        with open(meta_path) as f:
+            event_meta = json.load(f)
+    event_id = event_meta.get("event_id", args.parquet.parent.name)
+    event_title = event_meta.get("event_title", "unknown")
+
     print("=" * 60)
     print("Neural Hawkes Process (CT-LSTM)")
-    print("Event: Seoul March 26 (295980)")
+    print(f"Event: {event_title} ({event_id})")
     print("=" * 60)
 
     if torch.cuda.is_available():
@@ -616,11 +625,31 @@ def main() -> None:
     held_out_ll = float(np.mean(ll_estimates))
     held_out_std = float(np.std(ll_estimates))
     print(f"\n  Held-out avg LL: {held_out_ll:.4f} +/- {held_out_std:.4f}")
-    print(f"  Classical baseline: -5.473")
-    if held_out_ll > -5.473:
-        print(f"  >>> BEATS classical baseline by {held_out_ll - (-5.473):.4f} <<<")
+
+    # Try to load classical baseline for comparison
+    classical_ll = None
+    classical_results_path = args.out / "results.json"
+    # Check sibling directory or same directory for classical results
+    for candidate in [args.out.parent / args.out.name / "results.json",
+                      args.parquet.parent.parent.parent / "reports" / "generalization" / event_id / "results.json",
+                      Path("data/reports/hawkes_classical/results.json")]:
+        if candidate.exists():
+            try:
+                with open(candidate) as f:
+                    cr = json.load(f)
+                if cr.get("model") == "multivariate_exponential_hawkes":
+                    classical_ll = cr["metrics"]["held_out_avg_log_likelihood"]
+                    break
+            except Exception:
+                pass
+    if classical_ll is None:
+        classical_ll = -5.473  # fallback default
+
+    print(f"  Classical baseline: {classical_ll:.4f}")
+    if held_out_ll > classical_ll:
+        print(f"  >>> BEATS classical baseline by {held_out_ll - classical_ll:.4f} <<<")
     else:
-        print(f"  >>> Below classical baseline by {(-5.473) - held_out_ll:.4f} <<<")
+        print(f"  >>> Below classical baseline by {classical_ll - held_out_ll:.4f} <<<")
 
     # 5. Plots
     print("\n[5/5] Generating visualizations...")
@@ -636,8 +665,8 @@ def main() -> None:
                      out_dir, device)
 
     results = {
-        "event_id": "295980",
-        "event_title": "Highest temperature in Seoul on March 26",
+        "event_id": event_id,
+        "event_title": event_title,
         "model": "neural_hawkes_ct_lstm",
         "architecture": "Mei & Eisner (2017) continuous-time LSTM",
         "hidden_dim": args.hidden,
@@ -659,8 +688,8 @@ def main() -> None:
         "metrics": {
             "held_out_avg_log_likelihood": held_out_ll,
             "held_out_ll_std": held_out_std,
-            "classical_baseline_ll": -5.473,
-            "beats_baseline": bool(held_out_ll > -5.473),
+            "classical_baseline_ll": classical_ll,
+            "beats_baseline": bool(held_out_ll > classical_ll),
         },
         "gpu": {
             "name": torch.cuda.get_device_name(args.gpu) if torch.cuda.is_available() else "cpu",
@@ -690,8 +719,8 @@ def main() -> None:
     print(f"  Training epochs:             {len(losses)}")
     print(f"  Best train NLL/event:        {min(losses):.4f}")
     print(f"  Held-out avg LL:             {held_out_ll:.4f} +/- {held_out_std:.4f}")
-    print(f"  Classical baseline LL:       -5.473")
-    print(f"  Beats baseline:              {'YES' if held_out_ll > -5.473 else 'NO'}")
+    print(f"  Classical baseline LL:       {classical_ll:.4f}")
+    print(f"  Beats baseline:              {'YES' if held_out_ll > classical_ll else 'NO'}")
     if torch.cuda.is_available():
         print(f"  GPU:                         {torch.cuda.get_device_name(args.gpu)}")
         print(f"  Peak VRAM:                   {vram_used:.1f} MB")
