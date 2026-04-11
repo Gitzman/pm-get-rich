@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baseline Comparison - PM Get Rich</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace;
+            background: #1a1a2e;
+            color: #e0e0e0;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        header {
+            background: #16213e;
+            padding: 1rem;
+            border-bottom: 2px solid #0f3460;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header h1 { font-size: 1.2rem; color: #53dba1; }
+        header .subtitle { font-size: 0.8rem; color: #888; }
+        header nav a {
+            color: #53dba1;
+            text-decoration: none;
+            font-size: 0.85rem;
+            margin-left: 1rem;
+        }
+        header nav a:hover { text-decoration: underline; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 1.5rem 1rem; }
+
+        h2 {
+            color: #53dba1;
+            font-size: 1.1rem;
+            margin: 2rem 0 1rem;
+            padding-bottom: 0.3rem;
+            border-bottom: 1px solid #0f3460;
+        }
+        h2:first-of-type { margin-top: 0.5rem; }
+
+        .summary-box {
+            background: #16213e;
+            border: 1px solid #0f3460;
+            border-left: 4px solid #53dba1;
+            border-radius: 6px;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+        .summary-box p { margin-bottom: 0.5rem; font-size: 0.9rem; }
+        .summary-box .headline {
+            font-size: 1.1rem;
+            color: #53dba1;
+            font-weight: bold;
+            margin-bottom: 0.75rem;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+        .card {
+            background: #16213e;
+            border-radius: 8px;
+            padding: 1rem;
+            border: 1px solid #0f3460;
+        }
+        .card .label { font-size: 0.7rem; color: #888; text-transform: uppercase; letter-spacing: 0.05em; }
+        .card .value { font-size: 1.4rem; color: #53dba1; font-weight: bold; margin-top: 0.25rem; }
+        .card .detail { font-size: 0.75rem; color: #888; margin-top: 0.25rem; }
+        .card .value.negative { color: #F44336; }
+        .card .value.warning { color: #f0a500; }
+
+        .plot-section {
+            margin-bottom: 2rem;
+        }
+        .plot-section img {
+            max-width: 100%;
+            border-radius: 6px;
+            border: 1px solid #0f3460;
+            background: #fff;
+        }
+        .plot-caption {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 0.5rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+        }
+        th {
+            background: #0f3460;
+            padding: 0.5rem;
+            text-align: left;
+            position: sticky;
+            top: 0;
+            white-space: nowrap;
+            cursor: pointer;
+            user-select: none;
+        }
+        th:hover { background: #1a5276; }
+        th .sort-arrow { font-size: 0.65rem; margin-left: 0.3rem; color: #888; }
+        td {
+            padding: 0.4rem 0.5rem;
+            border-bottom: 1px solid #1a2744;
+            white-space: nowrap;
+        }
+        tr:hover { background: rgba(83, 219, 161, 0.05); }
+        .num-pos { color: #4CAF50; }
+        .num-neg { color: #F44336; }
+        .null { color: #555; font-style: italic; }
+        .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+        .tag {
+            padding: 0.15rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+        }
+        .tag-tpp { background: #1a5276; color: #53dba1; }
+        .tag-volume { background: #5c2d0f; color: #f0a500; }
+
+        .tab-bar {
+            display: flex;
+            gap: 0;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #0f3460;
+        }
+        .tab-bar button {
+            background: none;
+            border: none;
+            color: #888;
+            padding: 0.6rem 1.2rem;
+            font-size: 0.85rem;
+            cursor: pointer;
+            font-family: inherit;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+        }
+        .tab-bar button:hover { color: #e0e0e0; }
+        .tab-bar button.active {
+            color: #53dba1;
+            border-bottom-color: #53dba1;
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            align-items: center;
+        }
+        .filters label {
+            font-size: 0.75rem;
+            color: #888;
+            text-transform: uppercase;
+        }
+        .filters select {
+            background: #0d1117;
+            color: #e0e0e0;
+            border: 1px solid #0f3460;
+            border-radius: 4px;
+            padding: 0.4rem 0.6rem;
+            font-size: 0.8rem;
+            font-family: inherit;
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .metric-card {
+            background: #16213e;
+            border: 1px solid #0f3460;
+            border-radius: 6px;
+            padding: 1rem;
+        }
+        .metric-card .metric-label {
+            font-size: 0.75rem;
+            color: #888;
+            text-transform: uppercase;
+            margin-bottom: 0.75rem;
+        }
+        .metric-card .metric-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.3rem 0;
+            font-size: 0.85rem;
+            border-bottom: 1px solid #1a2744;
+        }
+        .metric-card .metric-row:last-child { border-bottom: none; }
+        .metric-card .metric-name { color: #aaa; }
+        .metric-card .metric-val { font-weight: bold; }
+
+        #status {
+            background: #16213e;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            font-size: 0.85rem;
+            border-left: 3px solid #f0a500;
+        }
+        #status.ready { border-left-color: #53dba1; }
+        #status.error { border-left-color: #e74c3c; }
+
+        @media (max-width: 600px) {
+            .dashboard { grid-template-columns: repeat(2, 1fr); }
+            .metric-grid { grid-template-columns: 1fr; }
+            .card .value { font-size: 1.1rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <h1>PM Get Rich</h1>
+            <div class="subtitle">Baseline Comparison</div>
+        </div>
+        <nav>
+            <a href="index.html">Explorer</a>
+            <a href="comparison.html">Single-Market</a>
+            <a href="generalization.html">Generalization</a>
+            <a href="eval.html">Full-Scale Eval</a>
+            <a href="backtest.html">Backtest</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div id="status">Loading baseline comparison data...</div>
+
+        <div id="content" style="display:none">
+            <div class="summary-box">
+                <div class="headline" id="headline"></div>
+                <p id="summary-detail"></p>
+            </div>
+
+            <div class="dashboard" id="dashboard"></div>
+
+            <div class="tab-bar" id="tab-bar">
+                <button class="active" data-tab="pnl">Cumulative P&L</button>
+                <button data-tab="metrics">Metric Table</button>
+                <button data-tab="drift">Drift Curves</button>
+                <button data-tab="detail">Stratification</button>
+            </div>
+
+            <!-- Tab: Cumulative P&L -->
+            <div id="tab-pnl" class="tab-content active">
+                <h2>Cumulative P&L: TPP vs Volume</h2>
+                <div class="plot-section">
+                    <img src="data/baseline_comparison/04a_cumulative_pnl.png" alt="Cumulative P&L">
+                    <div class="plot-caption">Cumulative expected P&L over time for TPP model, volume baseline, and random baseline (moderate fill regime).</div>
+                </div>
+
+                <h2>Cumulative P&L by Trade Index</h2>
+                <div class="plot-section">
+                    <img src="data/baseline_comparison/04b_cumulative_by_trade.png" alt="Cumulative P&L by Trade">
+                    <div class="plot-caption">Cumulative P&L indexed by trade number, showing consistency of returns over the sample.</div>
+                </div>
+
+                <h2>Cumulative P&L by dt Window</h2>
+                <div class="plot-section">
+                    <img src="data/baseline_comparison/04c_cumulative_by_dt.png" alt="Cumulative P&L by dt">
+                    <div class="plot-caption">Cumulative P&L broken out by dt parameter (15s, 30s, 60s, 120s).</div>
+                </div>
+            </div>
+
+            <!-- Tab: Metric Table -->
+            <div id="tab-metrics" class="tab-content">
+                <h2>Aggregate Comparison (Bootstrap CI)</h2>
+                <div class="plot-section">
+                    <img src="data/baseline_comparison/01_aggregate_comparison.png" alt="Aggregate Comparison">
+                    <div class="plot-caption">Mean P&L with bootstrap 95% confidence intervals for TPP and volume strategies across fill regimes.</div>
+                </div>
+
+                <h2>Side-by-Side Metrics</h2>
+                <div class="metric-grid" id="metric-cards"></div>
+
+                <h2>Matched Trade Scatter</h2>
+                <div class="plot-section">
+                    <img src="data/baseline_comparison/02_matched_scatter.png" alt="Matched Trades">
+                    <div class="plot-caption">Head-to-head comparison on trades where both TPP and volume signals fired simultaneously.</div>
+                </div>
+            </div>
+
+            <!-- Tab: Drift Curves -->
+            <div id="tab-drift" class="tab-content">
+                <h2>Post-Fill Drift Analysis</h2>
+                <p style="font-size:0.85rem;color:#aaa;margin-bottom:1rem;">
+                    Extended drift windows (2/5/15/30 min) measure how price moves after a fill.
+                    Lower drift-against means less adverse selection.
+                </p>
+
+                <div class="filters">
+                    <label>Source:</label>
+                    <select id="drift-source">
+                        <option value="all">All</option>
+                        <option value="tpp">TPP</option>
+                        <option value="volume">Volume</option>
+                    </select>
+                    <label>Direction:</label>
+                    <select id="drift-direction">
+                        <option value="all" selected>All</option>
+                        <option value="buy">Buy</option>
+                        <option value="sell">Sell</option>
+                    </select>
+                    <label>Regime:</label>
+                    <select id="drift-regime">
+                        <option value="moderate" selected>Moderate</option>
+                        <option value="conservative">Conservative</option>
+                        <option value="optimistic">Optimistic</option>
+                    </select>
+                </div>
+
+                <div class="table-wrap">
+                    <table id="drift-table">
+                        <thead>
+                            <tr>
+                                <th data-col="source">Source <span class="sort-arrow"></span></th>
+                                <th data-col="signal_type">Signal <span class="sort-arrow"></span></th>
+                                <th data-col="direction_filter">Dir <span class="sort-arrow"></span></th>
+                                <th data-col="dt_seconds">Drift (s) <span class="sort-arrow"></span></th>
+                                <th data-col="volume_window_s">Vol Win <span class="sort-arrow"></span></th>
+                                <th data-col="n_signals">Signals <span class="sort-arrow"></span></th>
+                                <th data-col="hit_rate">Hit Rate <span class="sort-arrow"></span></th>
+                                <th data-col="sharpe">Sharpe <span class="sort-arrow"></span></th>
+                                <th data-col="total_expected_pnl">Exp P&L <span class="sort-arrow"></span></th>
+                                <th data-col="mean_abs_drift">|Drift| <span class="sort-arrow"></span></th>
+                                <th data-col="mean_drift_against">Drift Against <span class="sort-arrow"></span></th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <h2>Drift Curves: Sharpe by Horizon</h2>
+                <div id="drift-chart" style="margin-bottom:2rem;"></div>
+            </div>
+
+            <!-- Tab: Stratification Detail -->
+            <div id="tab-detail" class="tab-content">
+                <h2>P&L by City</h2>
+                <div class="plot-section">
+                    <img src="data/baseline_comparison/03a_by_city.png" alt="P&L by City">
+                    <div class="plot-caption">Per-city P&L comparison between TPP and volume strategies.</div>
+                </div>
+
+                <h2>P&L by Time of Day</h2>
+                <div class="plot-section">
+                    <img src="data/baseline_comparison/03b_by_hour.png" alt="P&L by Hour">
+                    <div class="plot-caption">Hourly P&L patterns for both strategies (UTC).</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let driftData = [];
+        let filteredDrift = [];
+        let driftSortCol = 'sharpe';
+        let driftSortAsc = false;
+
+        function fmtNum(val, decimals) {
+            if (val === null || val === undefined) return '<span class="null">N/A</span>';
+            const n = Number(val);
+            if (isNaN(n)) return '<span class="null">NaN</span>';
+            const s = n.toFixed(decimals !== undefined ? decimals : 2);
+            if (n > 0.005) return `<span class="num-pos">${s}</span>`;
+            if (n < -0.005) return `<span class="num-neg">${s}</span>`;
+            return s;
+        }
+
+        function fmtPct(val) {
+            if (val === null || val === undefined) return '<span class="null">N/A</span>';
+            return (val * 100).toFixed(1) + '%';
+        }
+
+        function fmtCI(val, ci) {
+            if (!ci || ci[0] === null) return fmtNum(val);
+            return `${fmtNum(val)} <span style="color:#666;font-size:0.75rem">[${Number(ci[0]).toFixed(2)}, ${Number(ci[1]).toFixed(2)}]</span>`;
+        }
+
+        function sourceTag(src) {
+            const cls = src === 'tpp' ? 'tag-tpp' : 'tag-volume';
+            return `<span class="tag ${cls}">${src.toUpperCase()}</span>`;
+        }
+
+        // Tab switching
+        document.getElementById('tab-bar').addEventListener('click', (e) => {
+            const btn = e.target.closest('button[data-tab]');
+            if (!btn) return;
+            document.querySelectorAll('.tab-bar button').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+        });
+
+        function applyDriftFilters() {
+            const src = document.getElementById('drift-source').value;
+            const dir = document.getElementById('drift-direction').value;
+            const regime = document.getElementById('drift-regime').value;
+            filteredDrift = driftData.filter(r => {
+                if (src !== 'all' && r.source !== src) return false;
+                if (dir !== 'all' && r.direction_filter !== dir) return false;
+                if (r.fill_regime !== regime) return false;
+                return true;
+            });
+            renderDriftTable();
+            renderDriftChart();
+        }
+
+        function renderDriftTable() {
+            filteredDrift.sort((a, b) => {
+                let va = a[driftSortCol], vb = b[driftSortCol];
+                if (va === null) return 1;
+                if (vb === null) return -1;
+                if (typeof va === 'string') { va = va.toLowerCase(); vb = (vb || '').toLowerCase(); }
+                if (va < vb) return driftSortAsc ? -1 : 1;
+                if (va > vb) return driftSortAsc ? 1 : -1;
+                return 0;
+            });
+
+            const tbody = document.querySelector('#drift-table tbody');
+            tbody.innerHTML = filteredDrift.map(r => `<tr>
+                <td>${sourceTag(r.source)}</td>
+                <td>${r.signal_type}</td>
+                <td>${r.direction_filter}</td>
+                <td>${r.dt_seconds}s</td>
+                <td>${r.volume_window_s > 0 ? r.volume_window_s + 's' : '-'}</td>
+                <td>${r.n_signals}</td>
+                <td>${fmtPct(r.hit_rate)}</td>
+                <td>${fmtNum(r.sharpe, 4)}</td>
+                <td>${fmtNum(r.total_expected_pnl)}</td>
+                <td>${Number(r.mean_abs_drift).toFixed(4)}</td>
+                <td>${fmtNum(r.mean_drift_against, 4)}</td>
+            </tr>`).join('');
+
+            document.querySelectorAll('#drift-table th').forEach(th => {
+                const arrow = th.querySelector('.sort-arrow');
+                if (th.dataset.col === driftSortCol) {
+                    arrow.textContent = driftSortAsc ? ' \u25B2' : ' \u25BC';
+                } else {
+                    arrow.textContent = '';
+                }
+            });
+        }
+
+        function renderDriftChart() {
+            const container = document.getElementById('drift-chart');
+            // Group by source+signal_type, plot sharpe vs dt_seconds
+            const groups = {};
+            const dirFilter = document.getElementById('drift-direction').value;
+            filteredDrift.forEach(r => {
+                if (r.direction_filter !== (dirFilter === 'all' ? 'all' : dirFilter)) return;
+                const key = r.source === 'tpp' ? 'TPP' :
+                    `Volume (${r.volume_window_s}s)`;
+                if (!groups[key]) groups[key] = [];
+                groups[key].push({ dt: r.dt_seconds, sharpe: r.sharpe, pnl: r.total_expected_pnl, hit: r.hit_rate });
+            });
+
+            const colors = { 'TPP': '#53dba1', 'Volume (30s)': '#f0a500', 'Volume (60s)': '#88c0d0', 'Volume (300s)': '#c084fc' };
+            const dts = [120, 300, 900, 1800];
+            const dtLabels = ['2min', '5min', '15min', '30min'];
+            const W = 600, H = 300, pad = { l: 60, r: 20, t: 30, b: 50 };
+            const plotW = W - pad.l - pad.r;
+            const plotH = H - pad.t - pad.b;
+
+            let allSharpe = [];
+            Object.values(groups).forEach(pts => pts.forEach(p => allSharpe.push(p.sharpe)));
+            if (allSharpe.length === 0) { container.innerHTML = '<div class="null">No data for selected filters</div>'; return; }
+            const minS = Math.min(0, ...allSharpe) - 0.01;
+            const maxS = Math.max(...allSharpe) + 0.01;
+
+            let svg = `<svg viewBox="0 0 ${W} ${H}" style="max-width:${W}px;width:100%">`;
+            // Grid
+            svg += `<rect x="${pad.l}" y="${pad.t}" width="${plotW}" height="${plotH}" fill="#0d1117" rx="4"/>`;
+            for (let i = 0; i <= 4; i++) {
+                const y = pad.t + plotH * i / 4;
+                const val = maxS - (maxS - minS) * i / 4;
+                svg += `<line x1="${pad.l}" y1="${y}" x2="${pad.l + plotW}" y2="${y}" stroke="#1a2744" stroke-width="1"/>`;
+                svg += `<text x="${pad.l - 8}" y="${y + 4}" text-anchor="end" fill="#888" font-size="10">${val.toFixed(3)}</text>`;
+            }
+            // Zero line
+            if (minS < 0) {
+                const zeroY = pad.t + plotH * (maxS / (maxS - minS));
+                svg += `<line x1="${pad.l}" y1="${zeroY}" x2="${pad.l + plotW}" y2="${zeroY}" stroke="#555" stroke-width="1" stroke-dasharray="4,4"/>`;
+            }
+            // X axis labels
+            dts.forEach((dt, i) => {
+                const x = pad.l + plotW * i / (dts.length - 1);
+                svg += `<text x="${x}" y="${H - 10}" text-anchor="middle" fill="#888" font-size="10">${dtLabels[i]}</text>`;
+            });
+            svg += `<text x="${pad.l + plotW / 2}" y="${H}" text-anchor="middle" fill="#888" font-size="11">Drift Window</text>`;
+            svg += `<text x="12" y="${pad.t + plotH / 2}" text-anchor="middle" fill="#888" font-size="11" transform="rotate(-90, 12, ${pad.t + plotH / 2})">Sharpe</text>`;
+
+            // Lines
+            let legend = [];
+            Object.entries(groups).forEach(([name, pts]) => {
+                pts.sort((a, b) => a.dt - b.dt);
+                const color = colors[name] || '#e0e0e0';
+                legend.push({ name, color });
+                let path = '';
+                pts.forEach((p, i) => {
+                    const xi = dts.indexOf(p.dt);
+                    if (xi < 0) return;
+                    const x = pad.l + plotW * xi / (dts.length - 1);
+                    const y = pad.t + plotH * (maxS - p.sharpe) / (maxS - minS);
+                    path += (i === 0 ? 'M' : 'L') + `${x},${y}`;
+                    svg += `<circle cx="${x}" cy="${y}" r="4" fill="${color}" stroke="#1a1a2e" stroke-width="1.5"/>`;
+                });
+                svg += `<path d="${path}" fill="none" stroke="${color}" stroke-width="2"/>`;
+            });
+
+            // Legend
+            legend.forEach((l, i) => {
+                const lx = pad.l + 10;
+                const ly = pad.t + 14 + i * 16;
+                svg += `<rect x="${lx}" y="${ly - 8}" width="10" height="10" rx="2" fill="${l.color}"/>`;
+                svg += `<text x="${lx + 14}" y="${ly + 1}" fill="#e0e0e0" font-size="10">${l.name}</text>`;
+            });
+
+            svg += '</svg>';
+            container.innerHTML = svg;
+        }
+
+        // Table sorting
+        document.querySelectorAll('#drift-table th').forEach(th => {
+            th.addEventListener('click', () => {
+                const col = th.dataset.col;
+                if (!col) return;
+                if (driftSortCol === col) { driftSortAsc = !driftSortAsc; }
+                else { driftSortCol = col; driftSortAsc = col === 'source' || col === 'signal_type'; }
+                renderDriftTable();
+            });
+        });
+
+        // Drift filters
+        ['drift-source', 'drift-direction', 'drift-regime'].forEach(id => {
+            document.getElementById(id).addEventListener('change', applyDriftFilters);
+        });
+
+        async function init() {
+            const statusEl = document.getElementById('status');
+            try {
+                // Load comparison summary
+                const summResp = await fetch('data/baseline_comparison/comparison_summary.json');
+                if (!summResp.ok) throw new Error(`Summary HTTP ${summResp.status}`);
+                const summary = await summResp.json();
+
+                // Load drift data
+                const driftResp = await fetch('data/baseline_comparison/drift_data.json');
+                if (!driftResp.ok) throw new Error(`Drift HTTP ${driftResp.status}`);
+                const driftJson = await driftResp.json();
+                driftData = driftJson.drift_full;
+
+                // Headline
+                const tppPnl = summary.tpp_total_pnl;
+                const volPnl = summary.volume_total_pnl;
+                const winner = volPnl > tppPnl ? 'Volume' : 'TPP';
+                const diff = Math.abs(volPnl - tppPnl);
+                document.getElementById('headline').textContent =
+                    `Volume baseline edges TPP by $${diff.toFixed(0)} in expected P&L ` +
+                    `(Sharpe ${summary.volume_sharpe.toFixed(3)} vs ${summary.tpp_sharpe.toFixed(3)}), ` +
+                    `but confidence intervals overlap.`;
+
+                document.getElementById('summary-detail').textContent =
+                    `Matched on ${summary.tpp_n} signals each (moderate fill regime). ` +
+                    `TPP hit rate ${(summary.tpp_hit_rate * 100).toFixed(1)}% vs volume ` +
+                    `${(summary.volume_hit_rate * 100).toFixed(1)}%. ` +
+                    `Both strategies show positive expected P&L but wide CIs suggest the difference is not statistically significant.`;
+
+                // Dashboard cards
+                const cards = [
+                    { label: 'TPP Exp P&L', value: '$' + tppPnl.toFixed(0),
+                      detail: `CI [${summary.tpp_total_pnl_ci[0].toFixed(0)}, ${summary.tpp_total_pnl_ci[1].toFixed(0)}]`,
+                      cls: tppPnl > 0 ? '' : 'negative' },
+                    { label: 'Volume Exp P&L', value: '$' + volPnl.toFixed(0),
+                      detail: `CI [${summary.volume_total_pnl_ci[0].toFixed(0)}, ${summary.volume_total_pnl_ci[1].toFixed(0)}]`,
+                      cls: volPnl > 0 ? '' : 'negative' },
+                    { label: 'TPP Sharpe', value: summary.tpp_sharpe.toFixed(3),
+                      detail: `CI [${summary.tpp_sharpe_ci[0].toFixed(3)}, ${summary.tpp_sharpe_ci[1].toFixed(3)}]`,
+                      cls: summary.tpp_sharpe > 0 ? '' : 'negative' },
+                    { label: 'Volume Sharpe', value: summary.volume_sharpe.toFixed(3),
+                      detail: `CI [${summary.volume_sharpe_ci[0].toFixed(3)}, ${summary.volume_sharpe_ci[1].toFixed(3)}]`,
+                      cls: summary.volume_sharpe > 0 ? '' : 'negative' },
+                    { label: 'TPP Hit Rate', value: (summary.tpp_hit_rate * 100).toFixed(1) + '%',
+                      detail: 'Direction accuracy',
+                      cls: summary.tpp_hit_rate > 0.52 ? '' : 'warning' },
+                    { label: 'Volume Hit Rate', value: (summary.volume_hit_rate * 100).toFixed(1) + '%',
+                      detail: 'Direction accuracy',
+                      cls: summary.volume_hit_rate > 0.52 ? '' : 'warning' },
+                ];
+                document.getElementById('dashboard').innerHTML = cards.map(c =>
+                    `<div class="card"><div class="label">${c.label}</div><div class="value ${c.cls || ''}">${c.value}</div>${c.detail ? `<div class="detail">${c.detail}</div>` : ''}</div>`
+                ).join('');
+
+                // Metric cards (side-by-side)
+                document.getElementById('metric-cards').innerHTML = `
+                    <div class="metric-card">
+                        <div class="metric-label">TPP Model (threshold=10%)</div>
+                        <div class="metric-row"><span class="metric-name">Mean P&L/trade</span><span class="metric-val">${fmtNum(summary.tpp_mean_pnl)}</span></div>
+                        <div class="metric-row"><span class="metric-name">Total Exp P&L</span><span class="metric-val">${fmtNum(summary.tpp_total_pnl, 0)}</span></div>
+                        <div class="metric-row"><span class="metric-name">Sharpe</span><span class="metric-val">${fmtNum(summary.tpp_sharpe, 4)}</span></div>
+                        <div class="metric-row"><span class="metric-name">Hit rate</span><span class="metric-val">${fmtPct(summary.tpp_hit_rate)}</span></div>
+                        <div class="metric-row"><span class="metric-name">Win rate</span><span class="metric-val">${fmtPct(summary.tpp_win_rate)}</span></div>
+                        <div class="metric-row"><span class="metric-name">Signals</span><span class="metric-val">${summary.tpp_n}</span></div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Volume Baseline (window=60s)</div>
+                        <div class="metric-row"><span class="metric-name">Mean P&L/trade</span><span class="metric-val">${fmtNum(summary.volume_mean_pnl)}</span></div>
+                        <div class="metric-row"><span class="metric-name">Total Exp P&L</span><span class="metric-val">${fmtNum(summary.volume_total_pnl, 0)}</span></div>
+                        <div class="metric-row"><span class="metric-name">Sharpe</span><span class="metric-val">${fmtNum(summary.volume_sharpe, 4)}</span></div>
+                        <div class="metric-row"><span class="metric-name">Hit rate</span><span class="metric-val">${fmtPct(summary.volume_hit_rate)}</span></div>
+                        <div class="metric-row"><span class="metric-name">Win rate</span><span class="metric-val">${fmtPct(summary.volume_win_rate)}</span></div>
+                        <div class="metric-row"><span class="metric-name">Signals</span><span class="metric-val">${summary.vol_n}</span></div>
+                    </div>
+                `;
+
+                // Drift table
+                applyDriftFilters();
+
+                document.getElementById('content').style.display = 'block';
+                statusEl.textContent = 'Loaded baseline comparison data';
+                statusEl.className = 'ready';
+            } catch (e) {
+                statusEl.textContent = `Error: ${e.message}`;
+                statusEl.className = 'error';
+                console.error('Init failed:', e);
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
