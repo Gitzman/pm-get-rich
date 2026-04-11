@@ -28,6 +28,7 @@ viz-whale-backtest = "scripts.viz_whale_backtest:main"
 normalize-events = "scripts.normalize_events:main"
 sanity-check-events = "scripts.sanity_check_events:main"
 export-parquet = "scripts.export_parquet:main"
+backtest-multivariate = "scripts.backtest_multivariate:main"
 
 [build-system]
 requires = ["hatchling"]

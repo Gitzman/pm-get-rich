@@ -42,14 +42,18 @@ class ChronosForecaster:
         price_series: pd.DataFrame,
         prediction_length: int = 64,
         quantile_levels: list[float] | None = None,
+        covariates: list[str] | None = None,
     ) -> pd.DataFrame:
         """Forecast a single market price series.
 
         Args:
             price_series: DataFrame with columns: timestamp, price.
-                Optionally includes 'market_id'.
+                Optionally includes 'market_id' and covariate columns.
             prediction_length: Number of future steps to predict.
             quantile_levels: Quantile levels for probabilistic forecasts.
+            covariates: List of covariate column names for multivariate
+                forecasting. These columns must exist in price_series.
+                Chronos 2 uses these as past-observed covariates.
 
         Returns:
             DataFrame with forecast timestamps and quantile columns.
@@ -62,14 +66,21 @@ class ChronosForecaster:
         if "market_id" not in df.columns:
             df = df.assign(market_id="default")
 
-        return self._pipeline.predict_df(
-            df,
+        kwargs: dict = dict(
             id_column="market_id",
             timestamp_column="timestamp",
             target="price",
             prediction_length=prediction_length,
             quantile_levels=quantile_levels,
         )
+
+        if covariates:
+            # Filter to covariate columns actually present in the DataFrame
+            available = [c for c in covariates if c in df.columns]
+            if available:
+                kwargs["covariates"] = available
+
+        return self._pipeline.predict_df(df, **kwargs)
 
     def batch_predict(
         self,
