@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Short-Horizon Backtest - PM Get Rich</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace;
+            background: #1a1a2e;
+            color: #e0e0e0;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        header {
+            background: #16213e;
+            padding: 1rem;
+            border-bottom: 2px solid #0f3460;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header h1 { font-size: 1.2rem; color: #53dba1; }
+        header .subtitle { font-size: 0.8rem; color: #888; }
+        header nav a {
+            color: #53dba1;
+            text-decoration: none;
+            font-size: 0.85rem;
+            margin-left: 1rem;
+        }
+        header nav a:hover { text-decoration: underline; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 1.5rem 1rem; }
+
+        h2 {
+            color: #53dba1;
+            font-size: 1.1rem;
+            margin: 2rem 0 1rem;
+            padding-bottom: 0.3rem;
+            border-bottom: 1px solid #0f3460;
+        }
+        h2:first-of-type { margin-top: 0.5rem; }
+
+        .summary-box {
+            background: #16213e;
+            border: 1px solid #0f3460;
+            border-left: 4px solid #53dba1;
+            border-radius: 6px;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+        .summary-box p { margin-bottom: 0.5rem; font-size: 0.9rem; }
+        .summary-box .headline {
+            font-size: 1.1rem;
+            color: #53dba1;
+            font-weight: bold;
+            margin-bottom: 0.75rem;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+        .card {
+            background: #16213e;
+            border-radius: 8px;
+            padding: 1rem;
+            border: 1px solid #0f3460;
+        }
+        .card .label { font-size: 0.7rem; color: #888; text-transform: uppercase; letter-spacing: 0.05em; }
+        .card .value { font-size: 1.4rem; color: #53dba1; font-weight: bold; margin-top: 0.25rem; }
+        .card .detail { font-size: 0.75rem; color: #888; margin-top: 0.25rem; }
+        .card .value.negative { color: #F44336; }
+        .card .value.warning { color: #f0a500; }
+
+        .plot-section {
+            margin-bottom: 2rem;
+        }
+        .plot-section img {
+            max-width: 100%;
+            border-radius: 6px;
+            border: 1px solid #0f3460;
+            background: #fff;
+        }
+        .plot-caption {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 0.5rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+        }
+        th {
+            background: #0f3460;
+            padding: 0.5rem;
+            text-align: left;
+            position: sticky;
+            top: 0;
+            white-space: nowrap;
+            cursor: pointer;
+            user-select: none;
+        }
+        th:hover { background: #1a5276; }
+        th .sort-arrow { font-size: 0.65rem; margin-left: 0.3rem; color: #888; }
+        td {
+            padding: 0.4rem 0.5rem;
+            border-bottom: 1px solid #1a2744;
+            white-space: nowrap;
+        }
+        tr:hover { background: rgba(83, 219, 161, 0.05); }
+        .num-pos { color: #4CAF50; }
+        .num-neg { color: #F44336; }
+        .null { color: #555; font-style: italic; }
+        .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+        .tag {
+            padding: 0.15rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+        }
+        .tag-model { background: #1a5276; color: #53dba1; }
+        .tag-random { background: #5c2d0f; color: #f0a500; }
+        .tag-shuffled { background: #3d1f5c; color: #c084fc; }
+        .tag-conservative { background: #2d3a1f; color: #a3be8c; }
+        .tag-moderate { background: #3a2d1f; color: #ebcb8b; }
+        .tag-optimistic { background: #1f2d3a; color: #88c0d0; }
+
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            align-items: center;
+        }
+        .filters label {
+            font-size: 0.75rem;
+            color: #888;
+            text-transform: uppercase;
+        }
+        .filters select {
+            background: #0d1117;
+            color: #e0e0e0;
+            border: 1px solid #0f3460;
+            border-radius: 4px;
+            padding: 0.4rem 0.6rem;
+            font-size: 0.8rem;
+            font-family: inherit;
+        }
+
+        .cost-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .cost-card {
+            background: #16213e;
+            border: 1px solid #0f3460;
+            border-radius: 6px;
+            padding: 1rem;
+        }
+        .cost-card .cost-label {
+            font-size: 0.75rem;
+            color: #888;
+            text-transform: uppercase;
+            margin-bottom: 0.75rem;
+        }
+        .cost-card .cost-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.3rem 0;
+            font-size: 0.85rem;
+            border-bottom: 1px solid #1a2744;
+        }
+        .cost-card .cost-row:last-child { border-bottom: none; }
+        .cost-card .cost-name { color: #aaa; }
+        .cost-card .cost-val { font-weight: bold; }
+
+        #status {
+            background: #16213e;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            font-size: 0.85rem;
+            border-left: 3px solid #f0a500;
+        }
+        #status.ready { border-left-color: #53dba1; }
+        #status.error { border-left-color: #e74c3c; }
+
+        .tab-bar {
+            display: flex;
+            gap: 0;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #0f3460;
+        }
+        .tab-bar button {
+            background: none;
+            border: none;
+            color: #888;
+            padding: 0.6rem 1.2rem;
+            font-size: 0.85rem;
+            cursor: pointer;
+            font-family: inherit;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+        }
+        .tab-bar button:hover { color: #e0e0e0; }
+        .tab-bar button.active {
+            color: #53dba1;
+            border-bottom-color: #53dba1;
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        @media (max-width: 600px) {
+            .dashboard { grid-template-columns: repeat(2, 1fr); }
+            .cost-grid { grid-template-columns: 1fr; }
+            .card .value { font-size: 1.1rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <h1>PM Get Rich</h1>
+            <div class="subtitle">Short-Horizon Backtest</div>
+        </div>
+        <nav>
+            <a href="index.html">Explorer</a>
+            <a href="comparison.html">Single-Market</a>
+            <a href="generalization.html">Generalization</a>
+            <a href="eval.html">Full-Scale Eval</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div id="status">Loading backtest results...</div>
+
+        <div id="content" style="display:none">
+            <div class="summary-box">
+                <div class="headline" id="headline"></div>
+                <p id="summary-detail"></p>
+            </div>
+
+            <div class="dashboard" id="dashboard"></div>
+
+            <div class="tab-bar" id="tab-bar">
+                <button class="active" data-tab="pnl">P&L Curve</button>
+                <button data-tab="params">Parameter Grid</button>
+                <button data-tab="trades">Per-Trade Detail</button>
+                <button data-tab="costs">Cost Model</button>
+            </div>
+
+            <!-- Tab: P&L Curve + Baselines -->
+            <div id="tab-pnl" class="tab-content active">
+                <h2>Per-Trade P&L Distribution</h2>
+                <div class="plot-section">
+                    <img src="data/backtest_eval/01_per_trade_pnl.png" alt="Per-Trade P&L">
+                    <div class="plot-caption">Bootstrap confidence intervals on per-trade expected P&L (moderate fill regime).</div>
+                </div>
+
+                <h2>Model vs Baselines</h2>
+                <div class="plot-section">
+                    <img src="data/backtest_eval/02_baselines.png" alt="Model vs Baselines">
+                    <div class="plot-caption">Model signal vs random and shuffled baselines across fill regimes. Higher is better.</div>
+                </div>
+
+                <h2>Adverse Selection</h2>
+                <div class="plot-section">
+                    <img src="data/backtest_eval/05_adverse_selection.png" alt="Adverse Selection">
+                    <div class="plot-caption">Post-fill price drift analysis across fill regimes and signal types.</div>
+                </div>
+            </div>
+
+            <!-- Tab: Parameter Grid -->
+            <div id="tab-params" class="tab-content">
+                <h2>Stratification by City</h2>
+                <div class="plot-section">
+                    <img src="data/backtest_eval/03a_by_city.png" alt="P&L by City">
+                    <div class="plot-caption">Expected P&L stratified by city. Wider bars indicate more signals from that city.</div>
+                </div>
+
+                <h2>Time to Resolution</h2>
+                <div class="plot-section">
+                    <img src="data/backtest_eval/03b_by_time_to_resolution.png" alt="P&L by Time to Resolution">
+                    <div class="plot-caption">Expected P&L by how long until the market resolves. Shorter horizons tend to have more predictable outcomes.</div>
+                </div>
+
+                <h2>dt x Threshold Heatmap</h2>
+                <div class="plot-section">
+                    <img src="data/backtest_eval/03c_dt_threshold_heatmap.png" alt="dt x Threshold Heatmap">
+                    <div class="plot-caption">Expected P&L for each (dt_seconds, threshold_pct) combination. Green = profitable, red = unprofitable.</div>
+                </div>
+
+                <h2>Capacity Analysis</h2>
+                <div class="plot-section">
+                    <img src="data/backtest_eval/04_capacity.png" alt="Capacity Analysis">
+                    <div class="plot-caption">How P&L scales with order size. Diminishing returns from fill probability and adverse selection.</div>
+                </div>
+            </div>
+
+            <!-- Tab: Per-Trade Detail Table -->
+            <div id="tab-trades" class="tab-content">
+                <h2>Full Parameter Grid</h2>
+                <div class="filters" id="trade-filters">
+                    <label>Signal:</label>
+                    <select id="filter-signal">
+                        <option value="all">All</option>
+                        <option value="model" selected>Model</option>
+                        <option value="random">Random</option>
+                        <option value="shuffled">Shuffled</option>
+                    </select>
+                    <label>Fill Regime:</label>
+                    <select id="filter-regime">
+                        <option value="all">All</option>
+                        <option value="conservative">Conservative</option>
+                        <option value="moderate">Moderate</option>
+                        <option value="optimistic">Optimistic</option>
+                    </select>
+                </div>
+                <div class="table-wrap">
+                    <table id="results-table">
+                        <thead>
+                            <tr>
+                                <th data-col="signal_type" data-type="string">Signal <span class="sort-arrow"></span></th>
+                                <th data-col="dt_seconds" data-type="number">dt (s) <span class="sort-arrow"></span></th>
+                                <th data-col="threshold_pct" data-type="number">Thresh % <span class="sort-arrow"></span></th>
+                                <th data-col="fill_regime" data-type="string">Fill Regime <span class="sort-arrow"></span></th>
+                                <th data-col="n_signals" data-type="number">Signals <span class="sort-arrow"></span></th>
+                                <th data-col="n_filled_expected" data-type="number">Fills (E) <span class="sort-arrow"></span></th>
+                                <th data-col="total_gross_pnl" data-type="number">Gross P&L <span class="sort-arrow"></span></th>
+                                <th data-col="total_exit_fees" data-type="number">Exit Fees <span class="sort-arrow"></span></th>
+                                <th data-col="total_adverse_selection" data-type="number">Adv Sel <span class="sort-arrow"></span></th>
+                                <th data-col="total_net_pnl" data-type="number">Net P&L <span class="sort-arrow"></span></th>
+                                <th data-col="total_expected_pnl" data-type="number">Exp P&L <span class="sort-arrow"></span></th>
+                                <th data-col="hit_rate" data-type="number">Hit Rate <span class="sort-arrow"></span></th>
+                                <th data-col="sharpe" data-type="number">Sharpe <span class="sort-arrow"></span></th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab: Cost Model -->
+            <div id="tab-costs" class="tab-content">
+                <h2>Fill Regime Assumptions</h2>
+                <div class="cost-grid" id="regime-cards"></div>
+
+                <h2>Best Model Config by Regime</h2>
+                <div class="cost-grid" id="best-configs"></div>
+
+                <h2>Fee Structure (Weather, theta = 0.05)</h2>
+                <div class="cost-grid">
+                    <div class="cost-card">
+                        <div class="cost-label">Maker (Entry)</div>
+                        <div class="cost-row"><span class="cost-name">Entry fee</span><span class="cost-val num-pos">$0.00</span></div>
+                        <div class="cost-row"><span class="cost-name">Strategy</span><span class="cost-val">Limit order</span></div>
+                        <div class="cost-row"><span class="cost-name">Rebate</span><span class="cost-val">25% pool (omitted)</span></div>
+                    </div>
+                    <div class="cost-card">
+                        <div class="cost-label">Taker (Exit)</div>
+                        <div class="cost-row"><span class="cost-name">Fee formula</span><span class="cost-val">theta * C * p(1-p)</span></div>
+                        <div class="cost-row"><span class="cost-name">At p=0.50</span><span class="cost-val num-neg">$1.25 / 100c</span></div>
+                        <div class="cost-row"><span class="cost-name">At resolution</span><span class="cost-val num-pos">~$0.00</span></div>
+                    </div>
+                    <div class="cost-card">
+                        <div class="cost-label">Adverse Selection</div>
+                        <div class="cost-row"><span class="cost-name">Conservative</span><span class="cost-val num-neg">1.0 tick</span></div>
+                        <div class="cost-row"><span class="cost-name">Moderate</span><span class="cost-val num-neg">0.5 tick</span></div>
+                        <div class="cost-row"><span class="cost-name">Optimistic</span><span class="cost-val num-neg">0.25 tick</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allResults = [];
+        let filteredResults = [];
+        let sortCol = 'total_expected_pnl';
+        let sortAsc = false;
+
+        const REGIME_PARAMS = {
+            conservative: {
+                taker_volume: 50, resting_depth: 200,
+                adverse_ticks: 1.0, queue_frac: 1.0,
+                desc: 'Last in queue, high adverse selection, low taker flow'
+            },
+            moderate: {
+                taker_volume: 200, resting_depth: 100,
+                adverse_ticks: 0.5, queue_frac: 1.0,
+                desc: 'Full queue, moderate adverse selection and taker flow'
+            },
+            optimistic: {
+                taker_volume: 500, resting_depth: 50,
+                adverse_ticks: 0.25, queue_frac: 0.5,
+                desc: 'Mid-queue, low adverse selection, high taker flow'
+            },
+        };
+
+        function fmtNum(val, decimals) {
+            if (val === null || val === undefined) return '<span class="null">N/A</span>';
+            const n = Number(val);
+            if (isNaN(n)) return '<span class="null">NaN</span>';
+            const s = n.toFixed(decimals !== undefined ? decimals : 2);
+            if (n > 0.005) return `<span class="num-pos">${s}</span>`;
+            if (n < -0.005) return `<span class="num-neg">${s}</span>`;
+            return s;
+        }
+
+        function fmtPct(val) {
+            if (val === null || val === undefined) return '<span class="null">N/A</span>';
+            return (val * 100).toFixed(1) + '%';
+        }
+
+        function signalTag(type) {
+            const cls = { model: 'tag-model', random: 'tag-random', shuffled: 'tag-shuffled' };
+            return `<span class="tag ${cls[type] || ''}">${type}</span>`;
+        }
+
+        function regimeTag(regime) {
+            const cls = { conservative: 'tag-conservative', moderate: 'tag-moderate', optimistic: 'tag-optimistic' };
+            return `<span class="tag ${cls[regime] || ''}">${regime}</span>`;
+        }
+
+        function applyFilters() {
+            const signalVal = document.getElementById('filter-signal').value;
+            const regimeVal = document.getElementById('filter-regime').value;
+            filteredResults = allResults.filter(r => {
+                if (signalVal !== 'all' && r.signal_type !== signalVal) return false;
+                if (regimeVal !== 'all' && r.fill_regime !== regimeVal) return false;
+                return true;
+            });
+            renderTable();
+        }
+
+        function renderTable() {
+            filteredResults.sort((a, b) => {
+                let va = a[sortCol], vb = b[sortCol];
+                if (va === null) return 1;
+                if (vb === null) return -1;
+                if (typeof va === 'string') { va = va.toLowerCase(); vb = (vb || '').toLowerCase(); }
+                if (va < vb) return sortAsc ? -1 : 1;
+                if (va > vb) return sortAsc ? 1 : -1;
+                return 0;
+            });
+
+            const tbody = document.querySelector('#results-table tbody');
+            tbody.innerHTML = filteredResults.map(r => `<tr>
+                <td>${signalTag(r.signal_type)}</td>
+                <td>${r.dt_seconds}</td>
+                <td>${r.threshold_pct}</td>
+                <td>${regimeTag(r.fill_regime)}</td>
+                <td>${r.n_signals}</td>
+                <td>${Number(r.n_filled_expected).toFixed(1)}</td>
+                <td>${fmtNum(r.total_gross_pnl)}</td>
+                <td>${fmtNum(-Math.abs(r.total_exit_fees))}</td>
+                <td>${fmtNum(-Math.abs(r.total_adverse_selection))}</td>
+                <td>${fmtNum(r.total_net_pnl)}</td>
+                <td>${fmtNum(r.total_expected_pnl)}</td>
+                <td>${fmtPct(r.hit_rate)}</td>
+                <td>${fmtNum(r.sharpe, 4)}</td>
+            </tr>`).join('');
+
+            document.querySelectorAll('#results-table th').forEach(th => {
+                const arrow = th.querySelector('.sort-arrow');
+                if (th.dataset.col === sortCol) {
+                    arrow.textContent = sortAsc ? ' \u25B2' : ' \u25BC';
+                } else {
+                    arrow.textContent = '';
+                }
+            });
+        }
+
+        // Tab switching
+        document.getElementById('tab-bar').addEventListener('click', (e) => {
+            const btn = e.target.closest('button[data-tab]');
+            if (!btn) return;
+            document.querySelectorAll('.tab-bar button').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+        });
+
+        // Table sorting
+        document.querySelectorAll('#results-table th').forEach(th => {
+            th.addEventListener('click', () => {
+                const col = th.dataset.col;
+                if (sortCol === col) { sortAsc = !sortAsc; }
+                else { sortCol = col; sortAsc = col === 'signal_type' || col === 'fill_regime'; }
+                renderTable();
+            });
+        });
+
+        // Filters
+        document.getElementById('filter-signal').addEventListener('change', applyFilters);
+        document.getElementById('filter-regime').addEventListener('change', applyFilters);
+
+        async function init() {
+            const statusEl = document.getElementById('status');
+            try {
+                const resp = await fetch('data/backtest_results.json');
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                const data = await resp.json();
+                const summary = data.summary;
+                allResults = data.results;
+
+                // Headline
+                const ms = summary.model_summary;
+                const bestRegime = summary.best_model_by_regime.moderate;
+                document.getElementById('headline').textContent =
+                    `Model best expected P&L: $${ms.max_expected_pnl.toFixed(0)} (Sharpe ${ms.max_sharpe.toFixed(3)})`;
+                document.getElementById('summary-detail').textContent =
+                    `${summary.n_configs} configurations tested across ${summary.dt_values.length} dt windows ` +
+                    `(${summary.dt_values.join('s, ')}s), ${summary.threshold_values.length} threshold levels ` +
+                    `(${summary.threshold_values.join('%, ')}%), and 3 fill regimes. ` +
+                    `Model compared against random and bucket-shuffled baselines.`;
+
+                // Dashboard cards
+                const modelResults = allResults.filter(r => r.signal_type === 'model');
+                const moderateModel = modelResults.filter(r => r.fill_regime === 'moderate');
+                const bestModerate = moderateModel.reduce((best, r) =>
+                    r.total_expected_pnl > best.total_expected_pnl ? r : best, moderateModel[0]);
+
+                const nProfitable = moderateModel.filter(r => r.total_expected_pnl > 0).length;
+
+                const cards = [
+                    { label: 'Best Exp P&L', value: '$' + ms.max_expected_pnl.toFixed(0), detail: 'Across all regimes', cls: ms.max_expected_pnl > 0 ? '' : 'negative' },
+                    { label: 'Best Sharpe', value: ms.max_sharpe.toFixed(3), detail: 'Risk-adjusted return', cls: ms.max_sharpe > 0 ? '' : 'negative' },
+                    { label: 'Avg Hit Rate', value: (ms.mean_hit_rate * 100).toFixed(1) + '%', detail: 'Direction accuracy', cls: ms.mean_hit_rate > 0.5 ? '' : 'warning' },
+                    { label: 'Configs Tested', value: summary.n_configs, detail: `${summary.n_model} model, ${summary.n_random + summary.n_shuffled} baseline` },
+                    { label: 'Profitable (Mod)', value: nProfitable + '/' + moderateModel.length, detail: 'Moderate regime', cls: nProfitable > 0 ? '' : 'negative' },
+                    { label: 'Best Mod Config', value: bestModerate.dt_seconds + 's/' + bestModerate.threshold_pct + '%', detail: '$' + bestModerate.total_expected_pnl.toFixed(0) + ' exp P&L' },
+                ];
+                document.getElementById('dashboard').innerHTML = cards.map(c =>
+                    `<div class="card"><div class="label">${c.label}</div><div class="value ${c.cls || ''}">${c.value}</div>${c.detail ? `<div class="detail">${c.detail}</div>` : ''}</div>`
+                ).join('');
+
+                // Regime cards
+                document.getElementById('regime-cards').innerHTML = Object.entries(REGIME_PARAMS).map(([name, p]) =>
+                    `<div class="cost-card">
+                        <div class="cost-label">${name}</div>
+                        <div class="cost-row"><span class="cost-name">Taker volume</span><span class="cost-val">${p.taker_volume} contracts</span></div>
+                        <div class="cost-row"><span class="cost-name">Resting depth</span><span class="cost-val">${p.resting_depth} contracts</span></div>
+                        <div class="cost-row"><span class="cost-name">Adverse sel</span><span class="cost-val">${p.adverse_ticks} tick(s)</span></div>
+                        <div class="cost-row"><span class="cost-name">Queue position</span><span class="cost-val">${p.queue_frac === 1.0 ? 'Last' : 'Mid (' + p.queue_frac + ')'}</span></div>
+                        <div class="cost-row"><span class="cost-name" style="font-style:italic">${p.desc}</span></div>
+                    </div>`
+                ).join('');
+
+                // Best config per regime
+                document.getElementById('best-configs').innerHTML = Object.entries(summary.best_model_by_regime).map(([regime, cfg]) =>
+                    `<div class="cost-card">
+                        <div class="cost-label">Best model - ${regime}</div>
+                        <div class="cost-row"><span class="cost-name">dt / threshold</span><span class="cost-val">${cfg.dt_seconds}s / ${cfg.threshold_pct}%</span></div>
+                        <div class="cost-row"><span class="cost-name">Signals</span><span class="cost-val">${cfg.n_signals}</span></div>
+                        <div class="cost-row"><span class="cost-name">Expected fills</span><span class="cost-val">${Number(cfg.n_filled_expected).toFixed(1)}</span></div>
+                        <div class="cost-row"><span class="cost-name">Gross P&L</span><span class="cost-val">${fmtNum(cfg.total_gross_pnl)}</span></div>
+                        <div class="cost-row"><span class="cost-name">Exit fees</span><span class="cost-val">${fmtNum(-Math.abs(cfg.total_exit_fees))}</span></div>
+                        <div class="cost-row"><span class="cost-name">Adverse sel</span><span class="cost-val">${fmtNum(-Math.abs(cfg.total_adverse_selection))}</span></div>
+                        <div class="cost-row"><span class="cost-name">Expected P&L</span><span class="cost-val" style="font-size:1.1rem">${fmtNum(cfg.total_expected_pnl)}</span></div>
+                        <div class="cost-row"><span class="cost-name">Sharpe</span><span class="cost-val">${fmtNum(cfg.sharpe, 4)}</span></div>
+                        <div class="cost-row"><span class="cost-name">Hit rate</span><span class="cost-val">${fmtPct(cfg.hit_rate)}</span></div>
+                    </div>`
+                ).join('');
+
+                // Table
+                applyFilters();
+
+                document.getElementById('content').style.display = 'block';
+                statusEl.textContent = `Loaded ${allResults.length} backtest configurations`;
+                statusEl.className = 'ready';
+            } catch (e) {
+                statusEl.textContent = `Error loading backtest data: ${e.message}`;
+                statusEl.className = 'error';
+                console.error('Init failed:', e);
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
