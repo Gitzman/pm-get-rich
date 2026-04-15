@@ -15,3 +15,8 @@ from src.costs.fills import (
     expected_fill_cost,
     DEFAULT_FILL_ASSUMPTIONS,
 )
+from src.costs.book_fills import (
+    FillResult,
+    L2FillSimulator,
+    simulate_fill_series,
+)
