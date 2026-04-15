@@ -233,6 +233,7 @@
         </div>
         <nav>
             <a href="index.html">Explorer</a>
+            <a href="realistic-fill.html" style="color:#F44336;font-weight:bold">Realistic Fill Eval</a>
             <a href="comparison.html">Single-Market</a>
             <a href="generalization.html">Generalization</a>
             <a href="eval.html">Full-Scale Eval</a>
@@ -241,6 +242,13 @@
     </header>
 
     <div class="container">
+        <div style="background:#2a1a1a;border:1px solid #5c0000;border-left:4px solid #F44336;border-radius:6px;padding:1rem 1.25rem;margin-bottom:1rem;font-size:0.9rem">
+            <strong style="color:#F44336">L2 Order Book Eval Available:</strong>
+            The statistical fill model below has been superseded by an L2 fill simulation using real PMXT order book data.
+            Result: filled trades lose money (CI excludes zero on the negative side).
+            <a href="realistic-fill.html" style="color:#53dba1;margin-left:0.5rem">View Realistic Fill Eval &rarr;</a>
+        </div>
+
         <div id="status">Loading backtest results...</div>
 
         <div id="content" style="display:none">

@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Realistic Fill Eval - PM Get Rich</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace;
+            background: #1a1a2e;
+            color: #e0e0e0;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        header {
+            background: #16213e;
+            padding: 1rem;
+            border-bottom: 2px solid #0f3460;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header h1 { font-size: 1.2rem; color: #53dba1; }
+        header .subtitle { font-size: 0.8rem; color: #888; }
+        header nav a {
+            color: #53dba1;
+            text-decoration: none;
+            font-size: 0.85rem;
+            margin-left: 1rem;
+        }
+        header nav a:hover { text-decoration: underline; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 1.5rem 1rem; }
+
+        h2 {
+            color: #53dba1;
+            font-size: 1.1rem;
+            margin: 2rem 0 1rem;
+            padding-bottom: 0.3rem;
+            border-bottom: 1px solid #0f3460;
+        }
+        h2:first-of-type { margin-top: 0.5rem; }
+
+        .headline-box {
+            background: #16213e;
+            border: 1px solid #0f3460;
+            border-left: 4px solid #F44336;
+            border-radius: 6px;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+        .headline-box .headline {
+            font-size: 1.2rem;
+            color: #F44336;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        .headline-box .subtext {
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+        .headline-box .ci {
+            font-family: 'Fira Code', 'Cascadia Code', monospace;
+            color: #F44336;
+            font-weight: bold;
+        }
+
+        .summary-box {
+            background: #16213e;
+            border: 1px solid #0f3460;
+            border-left: 4px solid #53dba1;
+            border-radius: 6px;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+        .summary-box p { margin-bottom: 0.5rem; font-size: 0.9rem; }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+        .card {
+            background: #16213e;
+            border-radius: 8px;
+            padding: 1rem;
+            border: 1px solid #0f3460;
+        }
+        .card .label { font-size: 0.7rem; color: #888; text-transform: uppercase; letter-spacing: 0.05em; }
+        .card .value { font-size: 1.4rem; font-weight: bold; margin-top: 0.25rem; }
+        .card .value.green { color: #53dba1; }
+        .card .value.red { color: #F44336; }
+        .card .value.amber { color: #f0a500; }
+        .card .detail { font-size: 0.75rem; color: #888; margin-top: 0.25rem; }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            margin-bottom: 1.5rem;
+        }
+        .comparison-table th {
+            background: #0f3460;
+            padding: 0.6rem 0.75rem;
+            text-align: left;
+            white-space: nowrap;
+        }
+        .comparison-table th.highlight { background: #4a1a1a; color: #F44336; }
+        .comparison-table td {
+            padding: 0.5rem 0.75rem;
+            border-bottom: 1px solid #1a2744;
+        }
+        .comparison-table td.highlight { background: rgba(244, 67, 54, 0.08); }
+        .comparison-table tr:hover { background: rgba(83, 219, 161, 0.05); }
+        .num-pos { color: #4CAF50; }
+        .num-neg { color: #F44336; }
+
+        .chart-container {
+            background: #16213e;
+            border: 1px solid #0f3460;
+            border-radius: 6px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .chart-container canvas {
+            max-height: 350px;
+        }
+
+        .chart-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .insight {
+            background: #16213e;
+            border: 1px solid #0f3460;
+            border-radius: 6px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+        .insight .insight-num {
+            color: #53dba1;
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+        .insight strong { color: #e0e0e0; }
+
+        .coverage-note {
+            background: #2a2a1e;
+            border: 1px solid #5c4a00;
+            border-left: 4px solid #f0a500;
+            border-radius: 6px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.85rem;
+        }
+        .coverage-note .note-title {
+            color: #f0a500;
+            font-weight: bold;
+            margin-bottom: 0.3rem;
+        }
+
+        .methodology {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #0f3460;
+        }
+        .methodology ul { padding-left: 1.5rem; margin-top: 0.5rem; }
+        .methodology li { margin-bottom: 0.3rem; }
+
+        .link-box {
+            display: inline-block;
+            background: #0f3460;
+            border: 1px solid #1a5276;
+            border-radius: 4px;
+            padding: 0.5rem 1rem;
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+        }
+        .link-box a { color: #53dba1; text-decoration: none; }
+        .link-box a:hover { text-decoration: underline; }
+
+        @media (max-width: 768px) {
+            .dashboard { grid-template-columns: repeat(2, 1fr); }
+            .card .value { font-size: 1.1rem; }
+            .chart-row { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <h1>PM Get Rich</h1>
+            <div class="subtitle">Realistic Fill Eval &mdash; L2 Order Book Simulation</div>
+        </div>
+        <nav>
+            <a href="index.html">Explorer</a>
+            <a href="backtest.html">Backtest</a>
+            <a href="assumptions.html">Fill Model</a>
+            <a href="eval.html">Full-Scale Eval</a>
+            <a href="baseline.html">Baseline</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <!-- Headline -->
+        <div class="headline-box">
+            <div class="headline">Per-trade P&L 95% CI excludes zero &mdash; on the NEGATIVE side</div>
+            <div class="subtext">
+                CI: <span class="ci">[-28.71, -19.63]</span> &nbsp;|&nbsp;
+                Mean P&L per fill: <span class="ci">-$24.14</span> &nbsp;|&nbsp;
+                Filled trades are losing money.
+            </div>
+        </div>
+
+        <!-- Coverage note -->
+        <div class="coverage-note">
+            <div class="note-title">Coverage Limitation</div>
+            PMXT order book data only covers March 30 events at signal time. Of 5,532 signals:
+            <strong>360 signals (6.5%)</strong> had L2 book data &mdash; ALL 360 filled (100% fill rate with data).
+            5,172 signals (93.5%) had no L2 book data (PMXT coverage gap, not unfilled).
+            Numbers below reflect only the 360 data-covered signals for L2 fills.
+        </div>
+
+        <!-- KPI Dashboard -->
+        <div class="dashboard">
+            <div class="card">
+                <div class="label">L2 Fills</div>
+                <div class="value green">360</div>
+                <div class="detail">100% fill rate (with data)</div>
+            </div>
+            <div class="card">
+                <div class="label">Mean P&L / Fill</div>
+                <div class="value red">-$24.14</div>
+                <div class="detail">vs +$1.36 moderate model</div>
+            </div>
+            <div class="card">
+                <div class="label">Total P&L (L2)</div>
+                <div class="value red">-$8,689</div>
+                <div class="detail">vs +$7,507 moderate model</div>
+            </div>
+            <div class="card">
+                <div class="label">Direction Accuracy</div>
+                <div class="value red">29.7%</div>
+                <div class="detail">vs 54.1% overall signals</div>
+            </div>
+            <div class="card">
+                <div class="label">Win Rate</div>
+                <div class="value red">15.8%</div>
+                <div class="detail">vs 32.1% moderate model</div>
+            </div>
+            <div class="card">
+                <div class="label">95% CI</div>
+                <div class="value red">[-28.71, -19.63]</div>
+                <div class="detail">Excludes zero (negative)</div>
+            </div>
+        </div>
+
+        <!-- Comparison Table -->
+        <h2>Old Fill Model vs L2 Simulator</h2>
+        <div style="overflow-x:auto">
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Conservative</th>
+                        <th>Moderate</th>
+                        <th>Optimistic</th>
+                        <th class="highlight">L2 Book</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Signals</td>
+                        <td>5,532</td>
+                        <td>5,532</td>
+                        <td>5,532</td>
+                        <td class="highlight"><strong>5,532</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Signals w/ data</td>
+                        <td>5,532</td>
+                        <td>5,532</td>
+                        <td>5,532</td>
+                        <td class="highlight"><strong>360</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Fills</td>
+                        <td>922</td>
+                        <td>5,532</td>
+                        <td>5,532</td>
+                        <td class="highlight"><strong>360</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Fill Rate (all signals)</td>
+                        <td>16.7%</td>
+                        <td>100%</td>
+                        <td>100%</td>
+                        <td class="highlight"><strong>6.5%</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Fill Rate (w/ data)</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td class="highlight"><strong>100%</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Mean P&L / Fill</td>
+                        <td><span class="num-pos">$0.86</span></td>
+                        <td><span class="num-pos">$1.36</span></td>
+                        <td><span class="num-pos">$1.61</span></td>
+                        <td class="highlight"><span class="num-neg"><strong>-$24.14</strong></span></td>
+                    </tr>
+                    <tr>
+                        <td>Total P&L</td>
+                        <td><span class="num-pos">$790</span></td>
+                        <td><span class="num-pos">$7,507</span></td>
+                        <td><span class="num-pos">$8,890</span></td>
+                        <td class="highlight"><span class="num-neg"><strong>-$8,689</strong></span></td>
+                    </tr>
+                    <tr>
+                        <td>Win Rate</td>
+                        <td>28.8%</td>
+                        <td>32.1%</td>
+                        <td>33.0%</td>
+                        <td class="highlight"><span class="num-neg"><strong>15.8%</strong></span></td>
+                    </tr>
+                    <tr>
+                        <td>Hit Rate (Direction)</td>
+                        <td>54.1%</td>
+                        <td>54.1%</td>
+                        <td>54.1%</td>
+                        <td class="highlight"><span class="num-neg"><strong>29.7%</strong></span></td>
+                    </tr>
+                    <tr>
+                        <td>P&L 95% CI</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td class="highlight"><span class="num-neg"><strong>[-28.71, -19.63]</strong></span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Direction Accuracy Chart -->
+        <h2>Direction Accuracy: Overall vs Filled Trades</h2>
+        <div class="chart-row">
+            <div class="chart-container">
+                <canvas id="directionChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="adverseChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Key Observations -->
+        <h2>Key Observations</h2>
+        <div class="insight">
+            <span class="insight-num">1.</span>
+            <strong>All signals with L2 data filled (100%).</strong>
+            The orders are marketable or find enough taker flow within the fill window.
+            Fill rate is not the problem.
+        </div>
+        <div class="insight">
+            <span class="insight-num">2.</span>
+            <strong>Direction accuracy collapses on filled trades (29.7% vs 54.1% overall).</strong>
+            The signals that fill in the real book tend to be wrong about direction.
+            This is classic adverse selection: we get filled precisely when the market
+            is moving against our prediction.
+        </div>
+        <div class="insight">
+            <span class="insight-num">3.</span>
+            <strong>Both buy and sell signals lose money:</strong>
+            Buy mean P&L = -$25.05, Sell = -$18.89.
+            The loss is not side-specific.
+        </div>
+        <div class="insight">
+            <span class="insight-num">4.</span>
+            <strong>The statistical fill model was masking losses.</strong>
+            By assuming uniform fill probability independent of market conditions,
+            the old model spread P&L across signals that wouldn't actually fill
+            (winners and losers alike). The L2 model reveals which signals ACTUALLY
+            execute &mdash; and they're the losers.
+        </div>
+
+        <!-- Per-Market Fill Rate -->
+        <h2>Fill Rate by Market (March 30 Events)</h2>
+        <div class="chart-container">
+            <canvas id="fillRateChart"></canvas>
+        </div>
+
+        <!-- Adverse Selection Drift Detail -->
+        <h2>Adverse Selection Drift (L2 Fills Only)</h2>
+        <div class="summary-box">
+            <p>Adverse drift is consistently positive (0.20&ndash;0.27 cents), confirming that filled
+            orders face systematic adverse price movement across all time windows.</p>
+        </div>
+        <div style="overflow-x:auto">
+            <table class="comparison-table" style="max-width:500px">
+                <thead>
+                    <tr><th>Window</th><th>Mean Adverse Drift</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>30s</td><td><span class="num-neg">0.2231</span></td></tr>
+                    <tr><td>60s</td><td><span class="num-neg">0.1983</span></td></tr>
+                    <tr><td>120s</td><td><span class="num-neg">0.2733</span></td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Links -->
+        <h2>Related</h2>
+        <div class="link-box"><a href="assumptions.html">L2 Fill Model Assumptions &rarr;</a></div>
+        <div class="link-box" style="margin-left:0.5rem"><a href="backtest.html">Statistical Backtest Results &rarr;</a></div>
+
+        <!-- Methodology -->
+        <div class="methodology">
+            <strong>Methodology</strong>
+            <ul>
+                <li>Test window: March 25&ndash;31, 2026</li>
+                <li>PMXT coverage: March 30 events only (event IDs 322xxx)</li>
+                <li>Signal source: 5,532 signals (unchanged from previous runs)</li>
+                <li>L2 fill simulator: queue position tracking, snapshot-by-snapshot</li>
+                <li>Old fill model: statistical, fill_probability &times; net_pnl</li>
+                <li>Exit: time-stop (same as previous backtests)</li>
+                <li>Contracts: 100 per signal</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const chartDefaults = {
+            color: '#e0e0e0',
+            borderColor: '#0f3460',
+        };
+        Chart.defaults.color = '#aaa';
+        Chart.defaults.borderColor = '#1a2744';
+
+        // Direction accuracy comparison
+        new Chart(document.getElementById('directionChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Overall Signals', 'Filled Trades (L2)'],
+                datasets: [{
+                    label: 'Direction Accuracy',
+                    data: [54.1, 29.7],
+                    backgroundColor: ['#53dba1', '#F44336'],
+                    borderColor: ['#3bc88a', '#d32f2f'],
+                    borderWidth: 1,
+                    borderRadius: 4,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: { display: true, text: 'Direction Accuracy (%)', color: '#53dba1' },
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: ctx => ctx.parsed.y.toFixed(1) + '%' } }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 70,
+                        ticks: { callback: v => v + '%' },
+                        grid: { color: '#1a2744' }
+                    },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // Adverse selection drift
+        new Chart(document.getElementById('adverseChart'), {
+            type: 'bar',
+            data: {
+                labels: ['30s', '60s', '120s'],
+                datasets: [{
+                    label: 'Mean Adverse Drift',
+                    data: [0.2231, 0.1983, 0.2733],
+                    backgroundColor: '#F44336',
+                    borderColor: '#d32f2f',
+                    borderWidth: 1,
+                    borderRadius: 4,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: { display: true, text: 'Adverse Selection Drift by Window', color: '#53dba1' },
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: ctx => ctx.parsed.y.toFixed(4) + ' cents' } }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 0.35,
+                        grid: { color: '#1a2744' }
+                    },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // Per-market fill rate (all March 30 events)
+        const markets = [
+            { city: 'Buenos Aires', id: 322388 },
+            { city: 'Los Angeles', id: 322424 },
+            { city: 'Atlanta', id: 322394 },
+            { city: 'Shenzhen', id: 322420 },
+            { city: 'Shanghai', id: 322403 },
+            { city: 'Milan', id: 322405 },
+            { city: 'Wellington', id: 322397 },
+            { city: 'Warsaw', id: 322407 },
+            { city: 'Madrid', id: 322406 },
+            { city: 'Tokyo', id: 322401 },
+            { city: 'Mexico City', id: 322414 },
+            { city: 'Ho Chi Minh', id: 322399 },
+            { city: 'Santiago', id: 322410 },
+            { city: 'Cairo', id: 322395 },
+            { city: 'Jakarta', id: 322400 },
+        ];
+
+        new Chart(document.getElementById('fillRateChart'), {
+            type: 'bar',
+            data: {
+                labels: markets.map(m => m.city),
+                datasets: [{
+                    label: 'Fill Rate',
+                    data: markets.map(() => 100),
+                    backgroundColor: '#53dba1',
+                    borderColor: '#3bc88a',
+                    borderWidth: 1,
+                    borderRadius: 3,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: { display: true, text: 'Fill Rate by Market (March 30 Events) — All 100%', color: '#53dba1' },
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            title: items => markets[items[0].dataIndex].city + ' (' + markets[items[0].dataIndex].id + ')',
+                            label: ctx => '100% fill rate (24 signals, 24 fills)'
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 110,
+                        ticks: { callback: v => v + '%' },
+                        grid: { color: '#1a2744' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { maxRotation: 45, minRotation: 30 }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
