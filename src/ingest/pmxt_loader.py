@@ -161,11 +161,16 @@ def parse_book_snapshot(row: dict) -> BookSnapshot | None:
     bids.sort(key=lambda l: l.price, reverse=True)
     asks.sort(key=lambda l: l.price)
 
+    raw_bid = data.get("best_bid")
+    raw_ask = data.get("best_ask")
+    best_bid = float(raw_bid) if raw_bid is not None else (bids[0].price if bids else 0.0)
+    best_ask = float(raw_ask) if raw_ask is not None else (asks[0].price if asks else 1.0)
+
     return BookSnapshot(
         timestamp=ts,
         market_id=row["market_id"],
-        best_bid=float(data.get("best_bid", bids[0].price if bids else 0.0)),
-        best_ask=float(data.get("best_ask", asks[0].price if asks else 1.0)),
+        best_bid=best_bid,
+        best_ask=best_ask,
         bids=bids,
         asks=asks,
     )

@@ -39,6 +39,7 @@ from src.costs.fills import (
 from src.ingest.pmxt_loader import (
     BookSnapshot,
     _download_parquet,
+    _parquet_filename,
     parse_book_snapshot,
     PMXT_CACHE_DIR,
 )
@@ -687,16 +688,22 @@ def main():
             total_no_data += n_in_hour
             continue
 
-        # Download hour file(s) and extract snapshots using lazy scan
+        # Load hour file(s) from cache and extract snapshots using lazy scan
         # Only read needed columns + rows for memory efficiency
         cid_list = list(needed_cids)
         snapshots: list[BookSnapshot] = []
         for dt_offset in [timedelta(hours=0), timedelta(hours=1)]:
             dt = hour_dt + dt_offset
-            try:
-                parquet_path = _download_parquet(dt)
-            except Exception:
-                continue
+            # Use cached file if available; download only if --download flag set
+            parquet_path = PMXT_CACHE_DIR / _parquet_filename(dt)
+            if not parquet_path.exists():
+                if not args.skip_download:
+                    try:
+                        parquet_path = _download_parquet(dt)
+                    except Exception:
+                        continue
+                else:
+                    continue
 
             # Use scan_parquet with predicate pushdown for efficiency
             filtered = (
