@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PMXT Data Explorer - PM Get Rich</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace;
+            background: #1a1a2e;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+        header {
+            background: #16213e;
+            padding: 1rem;
+            border-bottom: 2px solid #0f3460;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header h1 { font-size: 1.2rem; color: #53dba1; }
+        header .subtitle { font-size: 0.8rem; color: #888; }
+        header nav a {
+            color: #53dba1;
+            text-decoration: none;
+            font-size: 0.85rem;
+            margin-left: 1rem;
+        }
+        header nav a:hover { text-decoration: underline; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 1rem; }
+
+        #status {
+            background: #16213e;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            font-size: 0.85rem;
+        }
+        #status.loading { border-left: 3px solid #f0a500; }
+        #status.ready { border-left: 3px solid #53dba1; }
+        #status.error { border-left: 3px solid #e74c3c; }
+
+        .controls {
+            background: #16213e;
+            border: 1px solid #0f3460;
+            border-radius: 6px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            align-items: flex-end;
+        }
+        .controls .field { display: flex; flex-direction: column; gap: 0.25rem; }
+        .controls label { font-size: 0.7rem; color: #888; text-transform: uppercase; letter-spacing: 0.05em; }
+        .controls input, .controls select {
+            background: #0d1117;
+            color: #e0e0e0;
+            border: 1px solid #0f3460;
+            border-radius: 4px;
+            padding: 0.5rem 0.75rem;
+            font-family: inherit;
+            font-size: 0.85rem;
+        }
+        .controls input:focus, .controls select:focus {
+            outline: none;
+            border-color: #53dba1;
+        }
+        .btn {
+            background: #53dba1;
+            color: #1a1a2e;
+            border: none;
+            padding: 0.5rem 1.25rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.85rem;
+        }
+        .btn:hover { background: #3bc88a; }
+        .btn:disabled { background: #555; cursor: not-allowed; }
+        .btn-secondary {
+            background: #0f3460;
+            color: #e0e0e0;
+            border: 1px solid #1a5276;
+        }
+        .btn-secondary:hover { background: #1a5276; }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        .card {
+            background: #16213e;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            border: 1px solid #0f3460;
+        }
+        .card .label { font-size: 0.7rem; color: #888; text-transform: uppercase; letter-spacing: 0.05em; }
+        .card .value { font-size: 1.3rem; color: #53dba1; font-weight: bold; margin-top: 0.15rem; }
+
+        .split {
+            display: grid;
+            grid-template-columns: 340px 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .market-list {
+            background: #16213e;
+            border: 1px solid #0f3460;
+            border-radius: 6px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            max-height: 600px;
+        }
+        .market-list .search {
+            padding: 0.5rem;
+            border-bottom: 1px solid #0f3460;
+        }
+        .market-list .search input {
+            width: 100%;
+            background: #0d1117;
+            color: #e0e0e0;
+            border: 1px solid #0f3460;
+            border-radius: 4px;
+            padding: 0.4rem 0.6rem;
+            font-size: 0.8rem;
+        }
+        .market-list .search input:focus {
+            outline: none;
+            border-color: #53dba1;
+        }
+        .market-list .items {
+            overflow-y: auto;
+            flex: 1;
+        }
+        .market-item {
+            padding: 0.5rem 0.75rem;
+            border-bottom: 1px solid #0f3460;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .market-item:hover { background: rgba(83, 219, 161, 0.05); }
+        .market-item.active { background: rgba(83, 219, 161, 0.12); border-left: 3px solid #53dba1; }
+        .market-item .mid {
+            font-family: 'Fira Code', monospace;
+            color: #53dba1;
+            word-break: break-all;
+        }
+        .market-item .counts {
+            font-size: 0.7rem;
+            color: #888;
+            margin-top: 0.15rem;
+        }
+
+        .detail-panel {
+            background: #16213e;
+            border: 1px solid #0f3460;
+            border-radius: 6px;
+            padding: 1rem;
+            overflow: auto;
+            max-height: 600px;
+        }
+        .detail-panel h3 {
+            font-size: 0.9rem;
+            color: #53dba1;
+            margin-bottom: 0.75rem;
+        }
+        .detail-panel .empty {
+            color: #555;
+            font-size: 0.85rem;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .detail-section {
+            margin-bottom: 1.5rem;
+        }
+        .detail-section h4 {
+            font-size: 0.8rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.25rem;
+            border-bottom: 1px solid #0f3460;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+        }
+        th {
+            background: #0f3460;
+            padding: 0.4rem 0.5rem;
+            text-align: left;
+            white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+        td {
+            padding: 0.35rem 0.5rem;
+            border-bottom: 1px solid #1a2744;
+            white-space: nowrap;
+        }
+        tr:hover { background: rgba(83, 219, 161, 0.05); }
+        .null { color: #555; font-style: italic; }
+        .num-pos { color: #4CAF50; }
+        .num-neg { color: #F44336; }
+
+        .book-viz {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+        .book-side {
+            font-size: 0.75rem;
+            font-family: 'Fira Code', monospace;
+        }
+        .book-side .side-label {
+            font-size: 0.7rem;
+            color: #888;
+            text-transform: uppercase;
+            margin-bottom: 0.25rem;
+        }
+        .book-level {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.15rem 0.3rem;
+            border-radius: 2px;
+        }
+        .bid-level { background: rgba(76, 175, 80, 0.1); }
+        .ask-level { background: rgba(244, 67, 54, 0.1); }
+        .bid-price { color: #4CAF50; }
+        .ask-price { color: #F44336; }
+        .level-size { color: #888; }
+
+        .compare-section {
+            background: #16213e;
+            border: 1px solid #0f3460;
+            border-radius: 6px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .compare-section h3 {
+            font-size: 0.9rem;
+            color: #53dba1;
+            margin-bottom: 0.5rem;
+        }
+        .compare-result {
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+            padding: 0.5rem;
+            border-radius: 4px;
+        }
+        .compare-result.found { background: rgba(76, 175, 80, 0.15); border-left: 3px solid #4CAF50; }
+        .compare-result.not-found { background: rgba(244, 67, 54, 0.15); border-left: 3px solid #F44336; }
+
+        .console {
+            background: #16213e;
+            border: 1px solid #0f3460;
+            border-radius: 6px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .console h3 {
+            font-size: 0.9rem;
+            color: #53dba1;
+            margin-bottom: 0.5rem;
+        }
+        .console textarea {
+            width: 100%;
+            min-height: 60px;
+            background: #0d1117;
+            color: #53dba1;
+            border: 1px solid #0f3460;
+            border-radius: 4px;
+            padding: 0.5rem;
+            font-family: 'Fira Code', 'Cascadia Code', 'Courier New', monospace;
+            font-size: 0.8rem;
+            resize: vertical;
+        }
+        .console .actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            align-items: center;
+        }
+        .console .hint { font-size: 0.7rem; color: #555; }
+        .sql-results { margin-top: 0.5rem; overflow-x: auto; }
+
+        @media (max-width: 768px) {
+            .split { grid-template-columns: 1fr; }
+            .market-list { max-height: 300px; }
+            .dashboard { grid-template-columns: repeat(2, 1fr); }
+            .book-viz { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <h1>PM Get Rich</h1>
+            <div class="subtitle">PMXT Order Book Data Explorer</div>
+        </div>
+        <nav>
+            <a href="index.html">Explorer</a>
+            <a href="realistic-fill.html">Realistic Fill</a>
+            <a href="eval.html">Full-Scale Eval</a>
+            <a href="backtest.html">Backtest</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div id="status" class="loading">Initializing DuckDB-WASM...</div>
+
+        <!-- File selector -->
+        <div class="controls">
+            <div class="field">
+                <label>Date</label>
+                <input type="date" id="pick-date" value="2026-03-30">
+            </div>
+            <div class="field">
+                <label>Hour (UTC)</label>
+                <select id="pick-hour"></select>
+            </div>
+            <button class="btn" id="load-btn" disabled onclick="loadFile()">Load File</button>
+            <span id="file-info" style="font-size:0.75rem;color:#888;align-self:center"></span>
+        </div>
+
+        <!-- Stats dashboard (hidden until data loaded) -->
+        <div class="dashboard" id="dashboard" style="display:none">
+            <div class="card"><div class="label">Total Rows</div><div class="value" id="stat-rows">-</div></div>
+            <div class="card"><div class="label">Unique Markets</div><div class="value" id="stat-markets">-</div></div>
+            <div class="card"><div class="label">Book Snapshots</div><div class="value" id="stat-snapshots">-</div></div>
+            <div class="card"><div class="label">Price Changes</div><div class="value" id="stat-changes">-</div></div>
+            <div class="card"><div class="label">Avg Snapshots/Mkt</div><div class="value" id="stat-avg">-</div></div>
+        </div>
+
+        <!-- Compare conditionId -->
+        <div class="compare-section" id="compare-section" style="display:none">
+            <h3>Compare Gamma conditionId</h3>
+            <div style="display:flex;gap:0.5rem;align-items:center">
+                <input type="text" id="compare-input" placeholder="Paste conditionId to check coverage..." style="flex:1;background:#0d1117;color:#e0e0e0;border:1px solid #0f3460;border-radius:4px;padding:0.5rem 0.75rem;font-family:monospace;font-size:0.8rem">
+                <button class="btn btn-secondary" onclick="compareId()">Check</button>
+            </div>
+            <div id="compare-result"></div>
+        </div>
+
+        <!-- Main split: market list + detail -->
+        <div class="split" id="main-split" style="display:none">
+            <div class="market-list">
+                <div class="search">
+                    <input type="text" id="market-search" placeholder="Filter by market_id..." oninput="filterMarkets()">
+                </div>
+                <div class="items" id="market-items"></div>
+            </div>
+            <div class="detail-panel" id="detail-panel">
+                <div class="empty">Select a market from the list to view order book details</div>
+            </div>
+        </div>
+
+        <!-- SQL console -->
+        <div class="console" id="sql-console" style="display:none">
+            <h3>SQL Console</h3>
+            <textarea id="sql" spellcheck="false">SELECT market_id, update_type, count(*) AS n FROM pmxt GROUP BY market_id, update_type ORDER BY n DESC LIMIT 50</textarea>
+            <div class="actions">
+                <button class="btn" id="sql-run" onclick="runSQL()">Run</button>
+                <span class="hint">Ctrl+Enter to run | Table: pmxt (market_id, update_type, data)</span>
+            </div>
+            <div class="sql-results" id="sql-results"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import * as duckdb from 'https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@1.29.0/+esm';
+
+        let db = null;
+        let conn = null;
+        let fileLoaded = false;
+        let allMarkets = [];
+
+        const statusEl = document.getElementById('status');
+        const loadBtn = document.getElementById('load-btn');
+
+        // Populate hour dropdown
+        const hourSel = document.getElementById('pick-hour');
+        for (let h = 0; h < 24; h++) {
+            const opt = document.createElement('option');
+            opt.value = String(h).padStart(2, '0');
+            opt.textContent = `${String(h).padStart(2, '0')}:00`;
+            if (h === 12) opt.selected = true;
+            hourSel.appendChild(opt);
+        }
+
+        async function init() {
+            try {
+                statusEl.textContent = 'Loading DuckDB-WASM...';
+                const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles();
+                const bundle = await duckdb.selectBundle(JSDELIVR_BUNDLES);
+
+                const workerUrl = URL.createObjectURL(
+                    new Blob([`importScripts("${bundle.mainWorker}");`], { type: 'text/javascript' })
+                );
+                const worker = new Worker(workerUrl);
+                const logger = new duckdb.ConsoleLogger();
+                db = new duckdb.AsyncDuckDB(logger, worker);
+                await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
+                conn = await db.connect();
+                URL.revokeObjectURL(workerUrl);
+
+                statusEl.textContent = 'Ready. Select a date/hour and click Load.';
+                statusEl.className = 'ready';
+                loadBtn.disabled = false;
+            } catch (e) {
+                statusEl.textContent = `Error: ${e.message}`;
+                statusEl.className = 'error';
+                console.error('Init failed:', e);
+            }
+        }
+
+        window.loadFile = async function() {
+            if (!db || !conn) return;
+
+            const date = document.getElementById('pick-date').value;
+            const hour = document.getElementById('pick-hour').value;
+            if (!date) return;
+
+            const filename = `polymarket_orderbook_${date}T${hour}.parquet`;
+            const proxyUrl = `/pmxt/${filename}`;
+
+            loadBtn.disabled = true;
+            statusEl.textContent = `Loading ${filename}...`;
+            statusEl.className = 'loading';
+            document.getElementById('file-info').textContent = '';
+
+            try {
+                // Drop previous table if exists
+                if (fileLoaded) {
+                    await conn.query('DROP TABLE IF EXISTS pmxt');
+                    fileLoaded = false;
+                }
+
+                // First check if the file exists with a HEAD request
+                const headResp = await fetch(proxyUrl, { method: 'HEAD' });
+                if (!headResp.ok) {
+                    throw new Error(`File not found: ${filename} (HTTP ${headResp.status})`);
+                }
+                const fileSize = parseInt(headResp.headers.get('content-length') || '0');
+                const fileSizeMB = (fileSize / 1048576).toFixed(1);
+
+                statusEl.textContent = `Downloading ${filename} (${fileSizeMB} MB)...`;
+
+                // Download the full file for reliability
+                const resp = await fetch(proxyUrl);
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                const buf = await resp.arrayBuffer();
+
+                statusEl.textContent = `Registering ${filename} in DuckDB...`;
+                await db.registerFileBuffer('pmxt.parquet', new Uint8Array(buf));
+                await conn.query("CREATE TABLE pmxt AS SELECT * FROM read_parquet('pmxt.parquet')");
+
+                fileLoaded = true;
+                document.getElementById('file-info').textContent = `${filename} (${fileSizeMB} MB)`;
+
+                statusEl.textContent = `Loaded ${filename}. Querying stats...`;
+
+                // Show sections
+                document.getElementById('dashboard').style.display = '';
+                document.getElementById('compare-section').style.display = '';
+                document.getElementById('main-split').style.display = '';
+                document.getElementById('sql-console').style.display = '';
+
+                await loadStats();
+                await loadMarketList();
+
+                statusEl.textContent = `Ready: ${filename}`;
+                statusEl.className = 'ready';
+            } catch (e) {
+                statusEl.textContent = `Error: ${e.message}`;
+                statusEl.className = 'error';
+                console.error('Load failed:', e);
+            } finally {
+                loadBtn.disabled = false;
+            }
+        };
+
+        async function loadStats() {
+            const queries = [
+                ['stat-rows', `SELECT count(*)::VARCHAR AS v FROM pmxt`],
+                ['stat-markets', `SELECT count(DISTINCT market_id)::VARCHAR AS v FROM pmxt`],
+                ['stat-snapshots', `SELECT count(*)::VARCHAR AS v FROM pmxt WHERE update_type = 'book_snapshot'`],
+                ['stat-changes', `SELECT count(*)::VARCHAR AS v FROM pmxt WHERE update_type = 'price_change'`],
+                ['stat-avg', `SELECT round(count(*) FILTER (WHERE update_type = 'book_snapshot')::FLOAT / NULLIF(count(DISTINCT market_id), 0), 1)::VARCHAR AS v FROM pmxt`],
+            ];
+            for (const [id, sql] of queries) {
+                try {
+                    const r = await conn.query(sql);
+                    const row = r.toArray()[0];
+                    if (row) {
+                        const val = row.v;
+                        document.getElementById(id).textContent = typeof val === 'string' ? val : String(val);
+                    }
+                } catch (e) { console.warn(`Stat ${id}:`, e.message); }
+            }
+        }
+
+        async function loadMarketList() {
+            try {
+                const r = await conn.query(`
+                    SELECT
+                        market_id,
+                        count(*) FILTER (WHERE update_type = 'book_snapshot') AS snapshots,
+                        count(*) FILTER (WHERE update_type = 'price_change') AS changes,
+                        count(*) AS total
+                    FROM pmxt
+                    GROUP BY market_id
+                    ORDER BY total DESC
+                `);
+                allMarkets = r.toArray().map(row => ({
+                    id: row.market_id,
+                    snapshots: Number(row.snapshots),
+                    changes: Number(row.changes),
+                    total: Number(row.total),
+                }));
+                renderMarketList(allMarkets);
+            } catch (e) {
+                console.error('Market list failed:', e);
+            }
+        }
+
+        function renderMarketList(markets) {
+            const container = document.getElementById('market-items');
+            if (markets.length === 0) {
+                container.innerHTML = '<div style="padding:1rem;color:#555;font-size:0.8rem">No markets found</div>';
+                return;
+            }
+            container.innerHTML = markets.map(m => `
+                <div class="market-item" data-id="${m.id}" onclick="selectMarket('${m.id}')">
+                    <div class="mid">${m.id.length > 40 ? m.id.slice(0, 20) + '...' + m.id.slice(-16) : m.id}</div>
+                    <div class="counts">${m.snapshots} snapshots, ${m.changes} price changes</div>
+                </div>
+            `).join('');
+        }
+
+        window.filterMarkets = function() {
+            const q = document.getElementById('market-search').value.toLowerCase();
+            if (!q) {
+                renderMarketList(allMarkets);
+                return;
+            }
+            renderMarketList(allMarkets.filter(m => m.id.toLowerCase().includes(q)));
+        };
+
+        window.selectMarket = async function(marketId) {
+            // Update active state
+            document.querySelectorAll('.market-item').forEach(el => {
+                el.classList.toggle('active', el.dataset.id === marketId);
+            });
+
+            const panel = document.getElementById('detail-panel');
+            panel.innerHTML = '<div class="empty">Loading...</div>';
+
+            try {
+                // Get latest book snapshot
+                const snapResult = await conn.query(`
+                    SELECT data FROM pmxt
+                    WHERE market_id = '${marketId.replace(/'/g, "''")}'
+                      AND update_type = 'book_snapshot'
+                    ORDER BY rowid DESC
+                    LIMIT 10
+                `);
+                const snapRows = snapResult.toArray();
+
+                // Get price changes
+                const changeResult = await conn.query(`
+                    SELECT data FROM pmxt
+                    WHERE market_id = '${marketId.replace(/'/g, "''")}'
+                      AND update_type = 'price_change'
+                    ORDER BY rowid DESC
+                    LIMIT 20
+                `);
+                const changeRows = changeResult.toArray();
+
+                let html = `<h3 style="word-break:break-all;font-size:0.8rem;font-family:monospace">${marketId}</h3>`;
+
+                // Book snapshots
+                html += '<div class="detail-section"><h4>Recent Book Snapshots</h4>';
+                if (snapRows.length === 0) {
+                    html += '<div style="color:#555;font-size:0.8rem">No book snapshots found</div>';
+                } else {
+                    for (let i = 0; i < snapRows.length; i++) {
+                        const data = parseData(snapRows[i].data);
+                        if (!data) continue;
+
+                        const ts = data.timestamp ? new Date(data.timestamp).toISOString().replace('T', ' ').slice(0, 19) + ' UTC' : '?';
+                        const spread = data.best_ask !== undefined && data.best_bid !== undefined
+                            ? (data.best_ask - data.best_bid).toFixed(4)
+                            : '?';
+                        const mid = data.best_ask !== undefined && data.best_bid !== undefined
+                            ? ((data.best_ask + data.best_bid) / 2).toFixed(4)
+                            : '?';
+
+                        html += `<div style="margin-bottom:0.75rem;padding:0.5rem;background:#0d1117;border-radius:4px">`;
+                        html += `<div style="font-size:0.75rem;color:#888;margin-bottom:0.25rem">${ts}</div>`;
+                        html += `<div style="font-size:0.8rem;margin-bottom:0.35rem">`;
+                        html += `Bid: <span class="num-pos">${fmt(data.best_bid)}</span> `;
+                        html += `Ask: <span class="num-neg">${fmt(data.best_ask)}</span> `;
+                        html += `Spread: <span style="color:#f0a500">${spread}</span> `;
+                        html += `Mid: ${mid}`;
+                        html += `</div>`;
+
+                        // Depth visualization
+                        const bids = (data.bids || []).slice(0, 8);
+                        const asks = (data.asks || []).slice(0, 8);
+                        if (bids.length > 0 || asks.length > 0) {
+                            html += '<div class="book-viz">';
+                            html += '<div class="book-side"><div class="side-label">Bids (' + bids.length + ' levels)</div>';
+                            for (const [price, size] of bids) {
+                                html += `<div class="book-level bid-level"><span class="bid-price">${fmt(price)}</span><span class="level-size">${fmtSize(size)}</span></div>`;
+                            }
+                            html += '</div>';
+                            html += '<div class="book-side"><div class="side-label">Asks (' + asks.length + ' levels)</div>';
+                            for (const [price, size] of asks) {
+                                html += `<div class="book-level ask-level"><span class="ask-price">${fmt(price)}</span><span class="level-size">${fmtSize(size)}</span></div>`;
+                            }
+                            html += '</div></div>';
+                        }
+                        html += '</div>';
+                    }
+                }
+                html += '</div>';
+
+                // Price changes
+                html += '<div class="detail-section"><h4>Recent Price Changes</h4>';
+                if (changeRows.length === 0) {
+                    html += '<div style="color:#555;font-size:0.8rem">No price change events found</div>';
+                } else {
+                    html += '<table><thead><tr><th>Time</th><th>Price</th><th>Details</th></tr></thead><tbody>';
+                    for (const row of changeRows) {
+                        const data = parseData(row.data);
+                        if (!data) continue;
+                        const ts = data.timestamp ? new Date(data.timestamp).toISOString().replace('T', ' ').slice(0, 19) : '?';
+                        const price = data.price !== undefined ? fmt(data.price) : '?';
+                        const details = Object.keys(data)
+                            .filter(k => k !== 'timestamp' && k !== 'price')
+                            .map(k => `${k}: ${JSON.stringify(data[k])}`)
+                            .join(', ');
+                        html += `<tr><td>${ts}</td><td>${price}</td><td style="max-width:300px;overflow:hidden;text-overflow:ellipsis">${details || '-'}</td></tr>`;
+                    }
+                    html += '</tbody></table>';
+                }
+                html += '</div>';
+
+                panel.innerHTML = html;
+            } catch (e) {
+                panel.innerHTML = `<div style="color:#e74c3c;padding:1rem">${e.message}</div>`;
+                console.error('Market detail failed:', e);
+            }
+        };
+
+        window.compareId = async function() {
+            const input = document.getElementById('compare-input').value.trim();
+            const resultEl = document.getElementById('compare-result');
+            if (!input || !conn || !fileLoaded) {
+                resultEl.innerHTML = '';
+                return;
+            }
+
+            try {
+                const r = await conn.query(`
+                    SELECT
+                        market_id,
+                        count(*) FILTER (WHERE update_type = 'book_snapshot') AS snapshots,
+                        count(*) AS total
+                    FROM pmxt
+                    WHERE market_id = '${input.replace(/'/g, "''")}'
+                    GROUP BY market_id
+                `);
+                const rows = r.toArray();
+                if (rows.length > 0) {
+                    const row = rows[0];
+                    resultEl.innerHTML = `<div class="compare-result found">Found: ${Number(row.snapshots)} snapshots, ${Number(row.total)} total records</div>`;
+                } else {
+                    // Fuzzy search
+                    const fuzzy = await conn.query(`
+                        SELECT DISTINCT market_id FROM pmxt
+                        WHERE market_id LIKE '%${input.replace(/'/g, "''").slice(-8)}%'
+                        LIMIT 5
+                    `);
+                    const fuzzyRows = fuzzy.toArray();
+                    let msg = `Not found in this hourly file.`;
+                    if (fuzzyRows.length > 0) {
+                        msg += ` Partial matches: ${fuzzyRows.map(r => r.market_id).join(', ')}`;
+                    }
+                    resultEl.innerHTML = `<div class="compare-result not-found">${msg}</div>`;
+                }
+            } catch (e) {
+                resultEl.innerHTML = `<div class="compare-result not-found">Error: ${e.message}</div>`;
+            }
+        };
+
+        window.runSQL = async function() {
+            const sql = document.getElementById('sql').value.trim();
+            if (!sql || !conn) return;
+
+            const resultsEl = document.getElementById('sql-results');
+            resultsEl.innerHTML = '<div style="color:#888;font-size:0.8rem">Running...</div>';
+
+            try {
+                const t0 = performance.now();
+                const result = await conn.query(sql);
+                const elapsed = ((performance.now() - t0) / 1000).toFixed(2);
+                const rows = result.toArray();
+                const fields = result.schema.fields.map(f => f.name);
+
+                let html = '<table><thead><tr>';
+                for (const f of fields) html += `<th>${f}</th>`;
+                html += '</tr></thead><tbody>';
+                const limit = Math.min(rows.length, 500);
+                for (let i = 0; i < limit; i++) {
+                    html += '<tr>';
+                    for (const f of fields) html += `<td>${fmtVal(rows[i][f])}</td>`;
+                    html += '</tr>';
+                }
+                html += '</tbody></table>';
+                if (rows.length > 500) html += `<div style="color:#888;font-size:0.75rem;margin-top:0.25rem">Showing 500 of ${rows.length} rows</div>`;
+                html += `<div style="color:#888;font-size:0.75rem;margin-top:0.25rem">${rows.length} row${rows.length !== 1 ? 's' : ''} (${elapsed}s)</div>`;
+                resultsEl.innerHTML = html;
+            } catch (e) {
+                resultsEl.innerHTML = `<div style="color:#e74c3c;padding:0.5rem">${e.message}</div>`;
+            }
+        };
+
+        function parseData(raw) {
+            if (!raw) return null;
+            try {
+                return typeof raw === 'string' ? JSON.parse(raw) : raw;
+            } catch { return null; }
+        }
+
+        function fmt(val) {
+            if (val === null || val === undefined) return '<span class="null">null</span>';
+            if (typeof val === 'number') return val.toFixed(4);
+            return String(val);
+        }
+
+        function fmtSize(val) {
+            if (val === null || val === undefined) return '-';
+            const n = Number(val);
+            if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+            return n.toFixed(0);
+        }
+
+        function fmtVal(val) {
+            if (val === null || val === undefined) return '<span class="null">null</span>';
+            if (typeof val === 'bigint') return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            if (typeof val === 'number') {
+                if (Number.isNaN(val)) return '<span class="null">NaN</span>';
+                const s = Number.isInteger(val) ? val.toLocaleString() : val.toFixed(4);
+                if (val > 0 && !Number.isInteger(val)) return `<span class="num-pos">${s}</span>`;
+                if (val < 0) return `<span class="num-neg">${s}</span>`;
+                return s;
+            }
+            if (val instanceof Date) return val.toISOString().slice(0, 19);
+            const s = String(val);
+            return s.length > 120 ? s.slice(0, 117) + '...' : s;
+        }
+
+        // Ctrl+Enter for SQL console
+        document.getElementById('sql').addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                runSQL();
+            }
+        });
+
+        init();
+    </script>
+</body>
+</html>
