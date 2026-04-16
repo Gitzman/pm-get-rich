@@ -459,11 +459,9 @@
 
                 statusEl.textContent = `Registering ${filename} (${fileSizeMB} MB) via HTTP range reads...`;
 
-                // Register as HTTP file — DuckDB-WASM reads via range requests
-                // Only fetches parquet metadata + needed row groups (not the full file)
-                await db.registerFileURL('pmxt.parquet', proxyUrl, duckdb.DuckDBDataProtocol.HTTP, false);
-                // Use VIEW for lazy reads — only fetches columns/rows needed per query
-                await conn.query("CREATE VIEW pmxt AS SELECT * FROM read_parquet('pmxt.parquet')");
+                // Use VIEW pointing directly at the proxy URL — DuckDB-WASM
+                // reads via HTTP range requests (only fetches metadata + needed row groups)
+                await conn.query(`CREATE VIEW pmxt AS SELECT * FROM read_parquet('${proxyUrl}')`);
 
                 fileLoaded = true;
                 document.getElementById('file-info').textContent = `${filename} (${fileSizeMB} MB)`;
