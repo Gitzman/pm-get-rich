@@ -435,7 +435,7 @@
             if (!date) return;
 
             const filename = `polymarket_orderbook_${date}T${hour}.parquet`;
-            const proxyUrl = `/pmxt/${filename}`;
+            const proxyUrl = `${window.location.origin}/pmxt/${filename}`;
 
             loadBtn.disabled = true;
             statusEl.textContent = `Loading ${filename}...`;
