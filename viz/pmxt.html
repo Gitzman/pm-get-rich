@@ -443,9 +443,9 @@
             document.getElementById('file-info').textContent = '';
 
             try {
-                // Drop previous table if exists
+                // Drop previous view if exists
                 if (fileLoaded) {
-                    await conn.query('DROP TABLE IF EXISTS pmxt');
+                    await conn.query('DROP VIEW IF EXISTS pmxt');
                     fileLoaded = false;
                 }
 
@@ -457,16 +457,13 @@
                 const fileSize = parseInt(headResp.headers.get('content-length') || '0');
                 const fileSizeMB = (fileSize / 1048576).toFixed(1);
 
-                statusEl.textContent = `Downloading ${filename} (${fileSizeMB} MB)...`;
+                statusEl.textContent = `Registering ${filename} (${fileSizeMB} MB) via HTTP range reads...`;
 
-                // Download the full file for reliability
-                const resp = await fetch(proxyUrl);
-                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-                const buf = await resp.arrayBuffer();
-
-                statusEl.textContent = `Registering ${filename} in DuckDB...`;
-                await db.registerFileBuffer('pmxt.parquet', new Uint8Array(buf));
-                await conn.query("CREATE TABLE pmxt AS SELECT * FROM read_parquet('pmxt.parquet')");
+                // Register as HTTP file — DuckDB-WASM reads via range requests
+                // Only fetches parquet metadata + needed row groups (not the full file)
+                await db.registerFileURL('pmxt.parquet', proxyUrl, duckdb.DuckDBDataProtocol.HTTP, false);
+                // Use VIEW for lazy reads — only fetches columns/rows needed per query
+                await conn.query("CREATE VIEW pmxt AS SELECT * FROM read_parquet('pmxt.parquet')");
 
                 fileLoaded = true;
                 document.getElementById('file-info').textContent = `${filename} (${fileSizeMB} MB)`;
