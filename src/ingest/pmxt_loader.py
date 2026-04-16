@@ -125,7 +125,8 @@ def _download_parquet(dt: datetime, cache_dir: Path | None = None) -> Path:
         return local_path
 
     url = f"{PMXT_BASE_URL}/{filename}"
-    with httpx.Client(timeout=120.0) as client:
+    headers = {"User-Agent": "prediction-market-backtesting/1.0"}
+    with httpx.Client(timeout=120.0, headers=headers) as client:
         resp = client.get(url)
         resp.raise_for_status()
         local_path.write_bytes(resp.content)
