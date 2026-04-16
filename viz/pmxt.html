@@ -457,11 +457,14 @@
                 const fileSize = parseInt(headResp.headers.get('content-length') || '0');
                 const fileSizeMB = (fileSize / 1048576).toFixed(1);
 
-                statusEl.textContent = `Registering ${filename} (${fileSizeMB} MB) via HTTP range reads...`;
+                statusEl.textContent = `Downloading ${filename} (${fileSizeMB} MB)...`;
 
-                // Use VIEW pointing directly at the proxy URL — DuckDB-WASM
-                // reads via HTTP range requests (only fetches metadata + needed row groups)
-                await conn.query(`CREATE VIEW pmxt AS SELECT * FROM read_parquet('${proxyUrl}')`);
+                // Fetch the full file as ArrayBuffer and register in DuckDB
+                const resp = await fetch(proxyUrl);
+                if (!resp.ok) throw new Error(`Download failed: HTTP ${resp.status}`);
+                const buf = await resp.arrayBuffer();
+                await db.registerFileBuffer('pmxt.parquet', new Uint8Array(buf));
+                await conn.query("CREATE OR REPLACE VIEW pmxt AS SELECT * FROM read_parquet('pmxt.parquet')");
 
                 fileLoaded = true;
                 document.getElementById('file-info').textContent = `${filename} (${fileSizeMB} MB)`;
