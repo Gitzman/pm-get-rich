@@ -392,21 +392,20 @@
                 conn = await db.connect();
                 URL.revokeObjectURL(workerUrl);
 
-                statusEl.textContent = 'Fetching HF condition index (~18MB gz)...';
-                const [idxResp, tempResp] = await Promise.all([
-                    fetch('data/hf_conditions_index.json'),
-                    fetch('data/hf_temperature_markets.json'),
-                ]);
-                if (!idxResp.ok) throw new Error(`HF index fetch failed: ${idxResp.status}`);
+                statusEl.textContent = 'Fetching HF temperature market index...';
+                const tempResp = await fetch('data/hf_temperature_markets.json');
                 if (!tempResp.ok) throw new Error(`HF temperature fetch failed: ${tempResp.status}`);
 
                 statusEl.textContent = 'Parsing HF index...';
-                const idxData = await idxResp.json();
                 const tempData = await tempResp.json();
 
-                hfIndex = idxData.conditions;
-                hfCategories = idxData.categories;
-                tempMarkets = tempData.markets;
+                // Build hfIndex from temperature data
+                hfIndex = {};
+                hfCategories = {};
+                tempMarkets = tempData;
+                for (const m of tempData) {
+                    hfIndex[m.cid] = { q: m.q, eid: m.eid, end: m.end };
+                }
                 for (const m of tempMarkets) {
                     tempByCondId.set(m.condition_id, m);
                 }
