@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Market Coverage: HF vs PMXT - PM Get Rich</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace;
+            background: #1a1a2e;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+        header {
+            background: #16213e;
+            padding: 1rem;
+            border-bottom: 2px solid #0f3460;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header h1 { font-size: 1.2rem; color: #53dba1; }
+        header .subtitle { font-size: 0.8rem; color: #888; }
+        header nav a {
+            color: #53dba1;
+            text-decoration: none;
+            font-size: 0.85rem;
+            margin-left: 1rem;
+        }
+        header nav a:hover { text-decoration: underline; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 1rem; }
+
+        #status {
+            background: #16213e;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            font-size: 0.85rem;
+        }
+        #status.loading { border-left: 3px solid #f0a500; }
+        #status.ready { border-left: 3px solid #53dba1; }
+        #status.error { border-left: 3px solid #e74c3c; }
+
+        .controls {
+            background: #16213e;
+            border: 1px solid #0f3460;
+            border-radius: 6px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            align-items: flex-end;
+        }
+        .controls .field { display: flex; flex-direction: column; gap: 0.25rem; }
+        .controls label { font-size: 0.7rem; color: #888; text-transform: uppercase; letter-spacing: 0.05em; }
+        .controls input, .controls select {
+            background: #0d1117;
+            color: #e0e0e0;
+            border: 1px solid #0f3460;
+            border-radius: 4px;
+            padding: 0.5rem 0.75rem;
+            font-family: inherit;
+            font-size: 0.85rem;
+        }
+        .controls input:focus, .controls select:focus {
+            outline: none;
+            border-color: #53dba1;
+        }
+        .btn {
+            background: #53dba1;
+            color: #1a1a2e;
+            border: none;
+            padding: 0.5rem 1.25rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.85rem;
+        }
+        .btn:hover { background: #3bc88a; }
+        .btn:disabled { background: #555; cursor: not-allowed; }
+
+        .venn-section {
+            background: #16213e;
+            border: 1px solid #0f3460;
+            border-radius: 6px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .venn-section h3 {
+            font-size: 0.9rem;
+            color: #53dba1;
+            margin-bottom: 0.75rem;
+        }
+        .venn-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+        .venn-cell {
+            background: #0d1117;
+            border-radius: 6px;
+            padding: 1rem;
+            text-align: center;
+        }
+        .venn-cell.hf-only { border: 2px solid #9f7aea; }
+        .venn-cell.both    { border: 2px solid #53dba1; }
+        .venn-cell.pmxt-only { border: 2px solid #f0a500; }
+        .venn-cell .label {
+            font-size: 0.75rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
+        }
+        .venn-cell .value { font-size: 2rem; font-weight: bold; }
+        .venn-cell.hf-only .value { color: #9f7aea; }
+        .venn-cell.both    .value { color: #53dba1; }
+        .venn-cell.pmxt-only .value { color: #f0a500; }
+        .venn-cell .sub { font-size: 0.7rem; color: #888; margin-top: 0.25rem; }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 0.5rem;
+        }
+        .cat-card {
+            background: #0d1117;
+            border: 1px solid #0f3460;
+            border-radius: 4px;
+            padding: 0.5rem 0.75rem;
+        }
+        .cat-card .name {
+            font-size: 0.75rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.35rem;
+        }
+        .cat-card .bar-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            margin-bottom: 0.15rem;
+        }
+        .cat-card .bar-row .num { font-family: 'Fira Code', monospace; }
+        .num-hf { color: #9f7aea; }
+        .num-both { color: #53dba1; }
+        .num-pmxt { color: #f0a500; }
+
+        .filter-row {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 0.75rem;
+        }
+        .filter-chip {
+            background: #0d1117;
+            border: 1px solid #0f3460;
+            border-radius: 20px;
+            padding: 0.3rem 0.75rem;
+            cursor: pointer;
+            font-size: 0.8rem;
+            color: #aaa;
+        }
+        .filter-chip.active {
+            background: #53dba1;
+            color: #1a1a2e;
+            border-color: #53dba1;
+            font-weight: bold;
+        }
+        .filter-chip:hover:not(.active) { border-color: #53dba1; color: #e0e0e0; }
+
+        .temp-section {
+            background: #16213e;
+            border: 1px solid #0f3460;
+            border-radius: 6px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .temp-section h3 {
+            font-size: 0.9rem;
+            color: #53dba1;
+            margin-bottom: 0.75rem;
+        }
+        .city-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .city-card {
+            background: #0d1117;
+            border-left: 3px solid #555;
+            padding: 0.5rem 0.75rem;
+            border-radius: 4px;
+        }
+        .city-card.in-both { border-left-color: #53dba1; }
+        .city-card.hf-only { border-left-color: #9f7aea; }
+        .city-card.pmxt-only { border-left-color: #f0a500; }
+        .city-card .city-name { font-weight: bold; font-size: 0.85rem; color: #e0e0e0; }
+        .city-card .city-sub { font-size: 0.7rem; color: #888; margin-top: 0.1rem; }
+
+        .search-input {
+            width: 100%;
+            background: #0d1117;
+            color: #e0e0e0;
+            border: 1px solid #0f3460;
+            border-radius: 4px;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.85rem;
+            margin-bottom: 0.75rem;
+        }
+        .search-input:focus { outline: none; border-color: #53dba1; }
+
+        .table-wrap {
+            max-height: 600px;
+            overflow: auto;
+            background: #0d1117;
+            border-radius: 4px;
+            border: 1px solid #0f3460;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+        }
+        th {
+            background: #0f3460;
+            padding: 0.5rem 0.6rem;
+            text-align: left;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            cursor: pointer;
+            user-select: none;
+        }
+        th:hover { background: #1a5276; }
+        td {
+            padding: 0.4rem 0.6rem;
+            border-bottom: 1px solid #1a2744;
+        }
+        tr:hover { background: rgba(83, 219, 161, 0.05); }
+        .cond-cell {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.72rem;
+            color: #888;
+        }
+        .badge-yes { color: #53dba1; font-weight: bold; }
+        .badge-no { color: #666; }
+        .copy-cond { cursor: pointer; color: #53dba1; text-decoration: none; }
+        .copy-cond:hover { text-decoration: underline; }
+
+        .hint { font-size: 0.75rem; color: #888; }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <h1>Market Coverage: HF vs PMXT</h1>
+            <div class="subtitle">Overlap between HuggingFace markets.parquet and PMXT hourly files</div>
+        </div>
+        <nav>
+            <a href="index.html">Explorer</a>
+            <a href="pmxt.html">PMXT</a>
+            <a href="eval.html">Eval</a>
+            <a href="backtest.html">Backtest</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div id="status" class="loading">Initializing DuckDB-WASM and loading HF index...</div>
+
+        <div class="controls">
+            <div class="field">
+                <label>PMXT Date</label>
+                <input type="date" id="pick-date" value="2026-03-30">
+            </div>
+            <div class="field">
+                <label>Hour (UTC)</label>
+                <select id="pick-hour"></select>
+            </div>
+            <button class="btn" id="load-btn" disabled onclick="loadFile()">Load &amp; Compare</button>
+            <span id="file-info" style="font-size:0.75rem;color:#888;align-self:center"></span>
+        </div>
+
+        <div id="results" style="display:none">
+            <div class="venn-section">
+                <h3>Overlap Summary</h3>
+                <div class="venn-grid">
+                    <div class="venn-cell hf-only">
+                        <div class="label">HF only</div>
+                        <div class="value" id="v-hf-only">-</div>
+                        <div class="sub">In HuggingFace markets, not in this PMXT hour</div>
+                    </div>
+                    <div class="venn-cell both">
+                        <div class="label">Both</div>
+                        <div class="value" id="v-both">-</div>
+                        <div class="sub">In HF and in this PMXT hour</div>
+                    </div>
+                    <div class="venn-cell pmxt-only">
+                        <div class="label">PMXT only</div>
+                        <div class="value" id="v-pmxt-only">-</div>
+                        <div class="sub">In this PMXT hour, not in HF (or pre-2026)</div>
+                    </div>
+                </div>
+                <div class="hint" id="totals-hint"></div>
+
+                <h3 style="margin-top:1rem">By Market Type</h3>
+                <div class="filter-row" id="category-filters"></div>
+                <div class="category-grid" id="category-grid"></div>
+            </div>
+
+            <div class="temp-section">
+                <h3>Temperature Markets — Coverage Detail</h3>
+                <div id="city-summary-heading" class="hint" style="margin-bottom:0.5rem"></div>
+                <div class="city-summary" id="city-summary"></div>
+
+                <input type="text" id="temp-search" class="search-input" placeholder="Filter by city, question, or conditionId..." oninput="renderTempTable()">
+                <div class="filter-row">
+                    <label class="hint" style="align-self:center">Date filter:</label>
+                    <select id="temp-date-filter" onchange="renderTempTable()" style="background:#0d1117;color:#e0e0e0;border:1px solid #0f3460;border-radius:4px;padding:0.3rem 0.6rem;font-size:0.8rem">
+                        <option value="selected">End date = selected PMXT date</option>
+                        <option value="all" selected>All dates</option>
+                        <option value="future">End date ≥ selected PMXT date</option>
+                    </select>
+                    <label class="filter-chip" id="temp-show-only-missing">
+                        <input type="checkbox" id="temp-missing-only" onchange="renderTempTable()" style="margin-right:0.25rem">
+                        HF-only (missing from PMXT)
+                    </label>
+                </div>
+                <div class="table-wrap">
+                    <table id="temp-table">
+                        <thead>
+                            <tr>
+                                <th data-sort="city">City</th>
+                                <th data-sort="end_date">End date</th>
+                                <th data-sort="question">Question</th>
+                                <th data-sort="condition_id">conditionId</th>
+                                <th data-sort="in_hf">in HF</th>
+                                <th data-sort="in_pmxt">in PMXT</th>
+                            </tr>
+                        </thead>
+                        <tbody id="temp-tbody"></tbody>
+                    </table>
+                </div>
+                <div class="hint" id="temp-table-info" style="margin-top:0.5rem"></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import * as duckdb from 'https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@1.29.0/+esm';
+
+        const statusEl = document.getElementById('status');
+        const loadBtn = document.getElementById('load-btn');
+
+        // State
+        let db = null, conn = null;
+        let hfIndex = null;           // { condition_id: cat_letter }
+        let hfCategories = null;      // { cat_letter: cat_name }
+        let tempMarkets = [];         // array of {condition_id, city, end_date, ...}
+        let tempByCondId = new Map(); // condition_id -> temp market record
+        let pmxtMarketIds = new Set();
+        let fileLoaded = false;
+        let categoryFilter = 'all';
+        let sortState = { key: 'city', dir: 1 };
+
+        const hourSel = document.getElementById('pick-hour');
+        for (let h = 0; h < 24; h++) {
+            const opt = document.createElement('option');
+            opt.value = String(h).padStart(2, '0');
+            opt.textContent = `${String(h).padStart(2, '0')}:00`;
+            if (h === 12) opt.selected = true;
+            hourSel.appendChild(opt);
+        }
+
+        async function init() {
+            try {
+                statusEl.textContent = 'Loading DuckDB-WASM...';
+                const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles();
+                const bundle = await duckdb.selectBundle(JSDELIVR_BUNDLES);
+                const workerUrl = URL.createObjectURL(
+                    new Blob([`importScripts("${bundle.mainWorker}");`], { type: 'text/javascript' })
+                );
+                const worker = new Worker(workerUrl);
+                const logger = new duckdb.ConsoleLogger();
+                db = new duckdb.AsyncDuckDB(logger, worker);
+                await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
+                conn = await db.connect();
+                URL.revokeObjectURL(workerUrl);
+
+                statusEl.textContent = 'Fetching HF condition index (~18MB gz)...';
+                const [idxResp, tempResp] = await Promise.all([
+                    fetch('data/hf_conditions_index.json'),
+                    fetch('data/hf_temperature_markets.json'),
+                ]);
+                if (!idxResp.ok) throw new Error(`HF index fetch failed: ${idxResp.status}`);
+                if (!tempResp.ok) throw new Error(`HF temperature fetch failed: ${tempResp.status}`);
+
+                statusEl.textContent = 'Parsing HF index...';
+                const idxData = await idxResp.json();
+                const tempData = await tempResp.json();
+
+                hfIndex = idxData.conditions;
+                hfCategories = idxData.categories;
+                tempMarkets = tempData.markets;
+                for (const m of tempMarkets) {
+                    tempByCondId.set(m.condition_id, m);
+                }
+
+                renderCategoryFilters();
+
+                statusEl.textContent = `Ready. HF index: ${Object.keys(hfIndex).length.toLocaleString()} markets (end_date ≥ ${idxData.min_end_date}). Temperature markets: ${tempMarkets.length.toLocaleString()}. Select a PMXT date/hour.`;
+                statusEl.className = 'ready';
+                loadBtn.disabled = false;
+            } catch (e) {
+                statusEl.textContent = `Error: ${e.message}`;
+                statusEl.className = 'error';
+                console.error('Init failed:', e);
+            }
+        }
+
+        function renderCategoryFilters() {
+            const cats = ['all', ...Object.values(hfCategories)];
+            const row = document.getElementById('category-filters');
+            row.innerHTML = cats.map(c =>
+                `<div class="filter-chip ${c === categoryFilter ? 'active' : ''}" data-cat="${c}">${c}</div>`
+            ).join('');
+            row.querySelectorAll('.filter-chip').forEach(el => {
+                el.onclick = () => {
+                    categoryFilter = el.dataset.cat;
+                    row.querySelectorAll('.filter-chip').forEach(e2 => {
+                        e2.classList.toggle('active', e2.dataset.cat === categoryFilter);
+                    });
+                    if (fileLoaded) renderCategoryGrid();
+                };
+            });
+        }
+
+        window.loadFile = async function() {
+            if (!db || !conn) return;
+            const date = document.getElementById('pick-date').value;
+            const hour = document.getElementById('pick-hour').value;
+            if (!date) return;
+
+            const filename = `polymarket_orderbook_${date}T${hour}.parquet`;
+            const proxyUrl = `${window.location.origin}/pmxt/${filename}`;
+
+            loadBtn.disabled = true;
+            statusEl.textContent = `Loading ${filename}...`;
+            statusEl.className = 'loading';
+            document.getElementById('file-info').textContent = '';
+
+            try {
+                const headResp = await fetch(proxyUrl, { method: 'HEAD' });
+                if (!headResp.ok) throw new Error(`File not found: ${filename} (HTTP ${headResp.status})`);
+                const fileSize = parseInt(headResp.headers.get('content-length') || '0');
+                const fileSizeMB = (fileSize / 1048576).toFixed(1);
+
+                statusEl.textContent = `Downloading ${filename} (${fileSizeMB} MB)...`;
+
+                if (fileLoaded) {
+                    try { await conn.query('DROP VIEW IF EXISTS pmxt'); } catch {}
+                    fileLoaded = false;
+                }
+
+                const resp = await fetch(proxyUrl);
+                if (!resp.ok) throw new Error(`Download failed: HTTP ${resp.status}`);
+                const buf = await resp.arrayBuffer();
+                await db.registerFileBuffer('pmxt.parquet', new Uint8Array(buf));
+                await conn.query("CREATE OR REPLACE VIEW pmxt AS SELECT * FROM read_parquet('pmxt.parquet')");
+                fileLoaded = true;
+                document.getElementById('file-info').textContent = `${filename} (${fileSizeMB} MB)`;
+
+                statusEl.textContent = `Computing overlap...`;
+
+                const r = await conn.query(`SELECT DISTINCT market_id FROM pmxt WHERE market_id IS NOT NULL`);
+                pmxtMarketIds = new Set(r.toArray().map(row => row.market_id));
+
+                document.getElementById('results').style.display = '';
+                renderOverlap();
+                renderCategoryGrid();
+                renderTempSummary();
+                renderTempTable();
+
+                statusEl.textContent = `Coverage ready: ${filename}`;
+                statusEl.className = 'ready';
+            } catch (e) {
+                statusEl.textContent = `Error: ${e.message}`;
+                statusEl.className = 'error';
+                console.error('Load failed:', e);
+            } finally {
+                loadBtn.disabled = false;
+            }
+        };
+
+        function renderOverlap() {
+            let hfOnly = 0, both = 0;
+            for (const cid of Object.keys(hfIndex)) {
+                if (pmxtMarketIds.has(cid)) both++; else hfOnly++;
+            }
+            const pmxtOnly = pmxtMarketIds.size - both;
+
+            document.getElementById('v-hf-only').textContent = hfOnly.toLocaleString();
+            document.getElementById('v-both').textContent = both.toLocaleString();
+            document.getElementById('v-pmxt-only').textContent = pmxtOnly.toLocaleString();
+
+            const hfTotal = Object.keys(hfIndex).length;
+            document.getElementById('totals-hint').textContent =
+                `HF index: ${hfTotal.toLocaleString()} markets (end_date ≥ 2026-01-01). PMXT hour: ${pmxtMarketIds.size.toLocaleString()} unique market_ids.`;
+        }
+
+        function renderCategoryGrid() {
+            const grid = document.getElementById('category-grid');
+            const catCounts = {};
+            for (const cat of Object.values(hfCategories)) {
+                catCounts[cat] = { hf_only: 0, both: 0, pmxt_only_by_unknown: 0 };
+            }
+            for (const [cid, cat_letter] of Object.entries(hfIndex)) {
+                const cat = hfCategories[cat_letter] || 'other';
+                if (categoryFilter !== 'all' && cat !== categoryFilter) continue;
+                if (pmxtMarketIds.has(cid)) catCounts[cat].both++;
+                else catCounts[cat].hf_only++;
+            }
+            // PMXT-only markets are by definition not in HF so we can't categorize them
+            // from the HF index. Surface as a single "pmxt_only" pseudo-category.
+            let pmxtOnly = 0;
+            for (const cid of pmxtMarketIds) {
+                if (!hfIndex[cid]) pmxtOnly++;
+            }
+
+            const shown = categoryFilter === 'all'
+                ? Object.values(hfCategories)
+                : [categoryFilter];
+
+            let html = shown.map(cat => {
+                const c = catCounts[cat] || { hf_only: 0, both: 0 };
+                const total = c.hf_only + c.both;
+                return `
+                    <div class="cat-card">
+                        <div class="name">${cat} (${total.toLocaleString()})</div>
+                        <div class="bar-row"><span>HF only</span><span class="num num-hf">${c.hf_only.toLocaleString()}</span></div>
+                        <div class="bar-row"><span>Both</span><span class="num num-both">${c.both.toLocaleString()}</span></div>
+                    </div>
+                `;
+            }).join('');
+
+            if (categoryFilter === 'all') {
+                html += `
+                    <div class="cat-card">
+                        <div class="name">PMXT only (not in HF index)</div>
+                        <div class="bar-row"><span>Count</span><span class="num num-pmxt">${pmxtOnly.toLocaleString()}</span></div>
+                        <div class="bar-row"><span class="hint">Either pre-2026 or absent from HF dataset</span></div>
+                    </div>
+                `;
+            }
+            grid.innerHTML = html;
+        }
+
+        function renderTempSummary() {
+            const selectedDate = document.getElementById('pick-date').value;
+            const heading = document.getElementById('city-summary-heading');
+            const summaryEl = document.getElementById('city-summary');
+
+            const cityStats = new Map(); // city -> {in_hf, in_pmxt, count}
+            for (const m of tempMarkets) {
+                if (m.end_date !== selectedDate) continue;
+                const city = m.city || 'Unknown';
+                if (!cityStats.has(city)) cityStats.set(city, { in_hf: 0, in_pmxt: 0, count: 0 });
+                const s = cityStats.get(city);
+                s.count++;
+                s.in_hf++;
+                if (pmxtMarketIds.has(m.condition_id)) s.in_pmxt++;
+            }
+
+            if (cityStats.size === 0) {
+                heading.textContent = `No HF temperature markets with end_date=${selectedDate}. Showing per-city coverage is unavailable for this date.`;
+                summaryEl.innerHTML = '';
+                return;
+            }
+
+            heading.textContent = `${cityStats.size} cities with end_date=${selectedDate} in HF. Bars show how many of their tick-markets are in this PMXT hour.`;
+            const sorted = [...cityStats.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+            summaryEl.innerHTML = sorted.map(([city, s]) => {
+                let cls = 'hf-only';
+                if (s.in_pmxt === s.in_hf) cls = 'in-both';
+                else if (s.in_pmxt > 0) cls = 'in-both';
+                if (s.in_pmxt === 0) cls = 'hf-only';
+                return `
+                    <div class="city-card ${cls}">
+                        <div class="city-name">${escapeHtml(city)}</div>
+                        <div class="city-sub">${s.in_pmxt}/${s.in_hf} markets in PMXT</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        window.renderTempTable = function() {
+            const q = (document.getElementById('temp-search').value || '').toLowerCase().trim();
+            const dateFilter = document.getElementById('temp-date-filter').value;
+            const missingOnly = document.getElementById('temp-missing-only').checked;
+            const selectedDate = document.getElementById('pick-date').value;
+
+            let rows = tempMarkets.map(m => ({
+                city: m.city || 'Unknown',
+                end_date: m.end_date || '',
+                question: m.question || '',
+                condition_id: m.condition_id,
+                in_hf: 1,
+                in_pmxt: pmxtMarketIds.has(m.condition_id) ? 1 : 0,
+            }));
+
+            if (dateFilter === 'selected') {
+                rows = rows.filter(r => r.end_date === selectedDate);
+            } else if (dateFilter === 'future') {
+                rows = rows.filter(r => r.end_date >= selectedDate);
+            }
+            if (missingOnly) rows = rows.filter(r => r.in_pmxt === 0);
+            if (q) {
+                rows = rows.filter(r =>
+                    r.city.toLowerCase().includes(q) ||
+                    r.question.toLowerCase().includes(q) ||
+                    r.condition_id.toLowerCase().includes(q)
+                );
+            }
+
+            const sk = sortState.key, sd = sortState.dir;
+            rows.sort((a, b) => {
+                const va = a[sk], vb = b[sk];
+                if (va === vb) return 0;
+                return (va < vb ? -1 : 1) * sd;
+            });
+
+            const tbody = document.getElementById('temp-tbody');
+            const limit = Math.min(rows.length, 2000);
+            let html = '';
+            for (let i = 0; i < limit; i++) {
+                const r = rows[i];
+                const cidShort = r.condition_id.length > 22
+                    ? r.condition_id.slice(0, 10) + '…' + r.condition_id.slice(-8)
+                    : r.condition_id;
+                html += `<tr>
+                    <td>${escapeHtml(r.city)}</td>
+                    <td>${escapeHtml(r.end_date)}</td>
+                    <td>${escapeHtml(r.question)}</td>
+                    <td class="cond-cell"><a class="copy-cond" href="#" title="Click to copy" data-cid="${escapeHtml(r.condition_id)}">${cidShort}</a></td>
+                    <td class="${r.in_hf ? 'badge-yes' : 'badge-no'}">${r.in_hf ? '✓' : '—'}</td>
+                    <td class="${r.in_pmxt ? 'badge-yes' : 'badge-no'}">${r.in_pmxt ? '✓' : '—'}</td>
+                </tr>`;
+            }
+            tbody.innerHTML = html;
+            tbody.querySelectorAll('.copy-cond').forEach(a => {
+                a.onclick = (e) => {
+                    e.preventDefault();
+                    navigator.clipboard.writeText(a.dataset.cid);
+                    a.textContent = 'copied!';
+                    setTimeout(() => {
+                        const cid = a.dataset.cid;
+                        a.textContent = cid.length > 22 ? cid.slice(0, 10) + '…' + cid.slice(-8) : cid;
+                    }, 1000);
+                };
+            });
+
+            document.getElementById('temp-table-info').textContent =
+                `Showing ${limit.toLocaleString()} of ${rows.length.toLocaleString()} matched rows (of ${tempMarkets.length.toLocaleString()} temperature markets total).`;
+        };
+
+        // Table sort handlers
+        document.addEventListener('click', (e) => {
+            const th = e.target.closest('th[data-sort]');
+            if (!th) return;
+            const key = th.dataset.sort;
+            if (sortState.key === key) sortState.dir = -sortState.dir;
+            else { sortState.key = key; sortState.dir = 1; }
+            renderTempTable();
+        });
+
+        function escapeHtml(s) {
+            if (s === null || s === undefined) return '';
+            return String(s).replace(/[&<>"']/g, c =>
+                ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])
+            );
+        }
+
+        init();
+    </script>
+</body>
+</html>

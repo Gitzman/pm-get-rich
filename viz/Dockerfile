@@ -9,5 +9,6 @@ COPY baseline.html /usr/share/nginx/html/
 COPY realistic-fill.html /usr/share/nginx/html/
 COPY assumptions.html /usr/share/nginx/html/
 COPY pmxt.html /usr/share/nginx/html/
+COPY coverage.html /usr/share/nginx/html/
 COPY data/ /usr/share/nginx/html/data/
 EXPOSE 8080

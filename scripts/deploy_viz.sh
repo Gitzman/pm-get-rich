@@ -19,6 +19,11 @@ echo ""
 echo "--- Exporting comparison data ---"
 uv run python scripts/export_comparison.py
 
+# Step 1c: Build HF coverage data (for viz/coverage.html)
+echo ""
+echo "--- Building HF coverage data ---"
+uv run python scripts/build_hf_coverage_data.py
+
 # Step 2: Verify data files exist
 echo ""
 echo "--- Checking data files ---"
