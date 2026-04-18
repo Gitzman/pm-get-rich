@@ -1,57 +1,35 @@
-# L2 Fill Simulator Backtest Comparison (pm-gy0.4)
+# L2 Fill Simulator Backtest Comparison (pm-gy0.8)
 
 **Apples-to-apples**: same 5,532 TPP signals, same exit rules.
-**Only change**: fill model swapped from statistical -> L2 order book.
+**Only change**: fill model swapped from statistical → L2 order book.
 
-## COVERAGE LIMITATION
+## Coverage (PMXT L2 data availability)
 
-PMXT order book data only covers March 30 events at signal time. Of 5,532 signals:
-- **360 signals (6.5%)** had L2 book data -> ALL 360 filled (100% fill rate with data)
-- **5,172 signals (93.5%)** had NO L2 book data (PMXT coverage gap, not unfilled)
-- **20 unique events** (all from March 30, event_ids 322xxx) had coverage
-- The 0% fill rate for earlier events is data absence, NOT market illiquidity
+- **Signals with L2 book data:** 360 / 5,532 = **6.5%**
+- **Signals without L2 data:** 5,172 (PMXT hourly parquets missing for those hours — not unfilled orders)
+- **Fills on covered signals:** 360 / 360 = **100.0%** (true L2 fill rate when data is present)
 
-**Headline numbers below reflect only the 360 data-covered signals for L2 fills.**
+All L2 metrics below are computed on the covered subset. Uncovered signals cannot be evaluated and are excluded from P&L, CI, hit rate, etc. (they are not "unfilled" — the data is simply absent).
 
 ## Headline: Per-trade P&L 95% CI excludes zero? **YES (NEGATIVE)**
   - CI: [-28.7112, -19.6300]
   - Mean P&L per filled trade: -24.1368
-  - **The CI excludes zero on the NEGATIVE side. Filled trades are losing money.**
-  - Direction accuracy for filled trades: 29.7% (66/222 non-flat)
-  - Mean gross P&L per fill: -23.4108 (before fees)
+  - Based on 360 filled trades drawn from 360 covered signals (6.5% of 5,532).
 
 ## Side-by-Side: Old Fill Model vs L2 Simulator
 
 | Metric | Conservative | Moderate | Optimistic | **L2 Book** |
 |--------|-------------|----------|------------|-------------|
 | Signals | 5532 | 5532 | 5532 | **5532** |
-| Signals w/ data | 5532 | 5532 | 5532 | **360** |
-| Fills | 922.0 | 5532.0 | 5532.0 | **360** |
-| Fill Rate (all) | 0.167 | 1.000 | 1.000 | **0.065** |
-| Fill Rate (w/ data) | - | - | - | **1.000** |
+| Fills | 922.0 | 5532.0 | 5532.0 | **360.0** |
+| Fill Rate (of all) | 0.167 | 1.000 | 1.000 | **0.065** |
 | Mean P&L/Fill | 0.8570 | 1.3570 | 1.6070 | **-24.1368** |
 | Total P&L | 790.14 | 7506.81 | 8889.81 | **-8689.24** |
 | Win Rate | 0.288 | 0.321 | 0.330 | **0.158** |
 | Hit Rate | 0.541 | 0.541 | 0.541 | **0.297** |
+| Signals w/ L2 data | - | - | - | **360** |
+| Fill Rate (of covered) | - | - | - | **1.000** |
 | P&L 95% CI | - | - | - | **[-28.7112, -19.6300]** |
-
-## Key Observations
-
-1. **All signals with L2 data filled (100%)**. The orders are marketable or find
-   enough taker flow within the fill window. Fill rate is not the problem.
-
-2. **Direction accuracy collapses on filled trades (29.7% vs 54.1% overall)**.
-   The signals that fill in the real book tend to be wrong about direction.
-   This is classic adverse selection: we get filled precisely when the market
-   is moving against our prediction.
-
-3. **Both buy and sell signals lose money**: Buy mean P&L = -25.05, Sell = -18.89.
-   The loss is not side-specific.
-
-4. **The statistical fill model was masking losses**. By assuming uniform fill
-   probability independent of market conditions, the old model spread P&L across
-   signals that wouldn't actually fill (winners and losers alike). The L2 model
-   reveals which signals ACTUALLY execute -- and they're the losers.
 
 ## Adverse Selection Drift (L2 Fills Only)
 
@@ -61,45 +39,66 @@ PMXT order book data only covers March 30 events at signal time. Of 5,532 signal
 | 60s | 0.198267 |
 | 120s | 0.273300 |
 
-Adverse drift is consistently positive (0.20-0.27), confirming that filled
-orders face systematic adverse price movement.
+## Fill Rate by Market
 
-## Fill Rate by Market (Top 10 / Bottom 10)
+_20 events had L2 coverage; 204 events had NO PMXT data (listed separately)._
 
-### Highest Fill Rate (All March 30 Events)
-| Event | City | Signals | Fills | Fill Rate |
-|-------|------|---------|-------|-----------|
-| 322388 | Buenos Aires | 24 | 24 | 1.000 |
-| 322424 | Los Angeles | 24 | 24 | 1.000 |
-| 322394 | Atlanta | 24 | 24 | 1.000 |
-| 322420 | Shenzhen | 24 | 24 | 1.000 |
-| 322403 | Shanghai | 24 | 24 | 1.000 |
-| 322405 | Milan | 24 | 24 | 1.000 |
-| 322397 | Wellington | 24 | 24 | 1.000 |
-| 322407 | Warsaw | 24 | 24 | 1.000 |
-| 322406 | Madrid | 24 | 24 | 1.000 |
-| 322401 | Tokyo | 24 | 24 | 1.000 |
+### Top 10 Covered Events by Fill Rate
+| Event | City | Signals | Covered | Fills | Fill Rate (of covered) |
+|-------|------|---------|---------|-------|------------------------|
+| 322401 | Tokyo | 24 | 24 | 24 | 1.000 |
+| 322407 | Warsaw | 24 | 24 | 24 | 1.000 |
+| 322394 | Atlanta | 24 | 24 | 24 | 1.000 |
+| 322424 | Los Angeles | 24 | 24 | 24 | 1.000 |
+| 322420 | Shenzhen | 24 | 24 | 24 | 1.000 |
+| 322406 | Madrid | 24 | 24 | 24 | 1.000 |
+| 322405 | Milan | 24 | 24 | 24 | 1.000 |
+| 322397 | Wellington | 24 | 24 | 24 | 1.000 |
+| 322388 | Buenos Aires | 24 | 24 | 24 | 1.000 |
+| 322403 | Shanghai | 24 | 24 | 24 | 1.000 |
 
-### Lowest Fill Rate (No L2 Data - PMXT Coverage Gap)
-| Event | City | Signals | Fills | Fill Rate |
-|-------|------|---------|-------|-----------|
-| 306309 | Paris | 24 | 0 | 0.000 |
-| 302790 | Sao Paulo | 24 | 0 | 0.000 |
-| 299430 | Singapore | 24 | 0 | 0.000 |
-| 299410 | Buenos Aires | 24 | 0 | 0.000 |
-| 295988 | Miami | 24 | 0 | 0.000 |
-| 292585 | Beijing | 24 | 0 | 0.000 |
-| 292559 | Buenos Aires | 24 | 0 | 0.000 |
-| 306347 | Beijing | 24 | 0 | 0.000 |
-| 306325 | Toronto | 24 | 0 | 0.000 |
-| 302794 | Seoul | 32 | 0 | 0.000 |
+### Bottom 10 Covered Events by Fill Rate
+| Event | City | Signals | Covered | Fills | Fill Rate (of covered) |
+|-------|------|---------|---------|-------|------------------------|
+| 322396 | Chicago | 24 | 12 | 12 | 1.000 |
+| 322331 | Ankara | 24 | 12 | 12 | 1.000 |
+| 322410 | Beijing | 24 | 12 | 12 | 1.000 |
+| 322402 | Hong Kong | 24 | 12 | 12 | 1.000 |
+| 322422 | Denver | 24 | 12 | 12 | 1.000 |
+| 322411 | Wuhan | 24 | 12 | 12 | 1.000 |
+| 322408 | Taipei | 24 | 12 | 12 | 1.000 |
+| 322404 | Singapore | 24 | 12 | 12 | 1.000 |
+| 322398 | Lucknow | 24 | 12 | 12 | 1.000 |
+| 322395 | Miami | 24 | 12 | 12 | 1.000 |
 
-## Methodology Notes
+### Events with NO PMXT Coverage (204)
+_These had zero L2 snapshots — data absence, not 0% fill._
 
-- Test window: March 25-31, 2026
-- PMXT coverage: March 30 events only (events 322xxx)
-- Signal source: data/signals/signals.parquet (5,532 signals, unchanged from previous runs)
-- L2 fill simulator: src/costs/book_fills.py (queue position tracking, snapshot-by-snapshot)
-- Old fill model: src/costs/fills.py (statistical, fill_probability * net_pnl)
-- Exit: time-stop (same as previous backtests)
-- Contracts: 100 per signal
+| Event | City | Signals |
+|-------|------|---------|
+| 306333 | Ankara | 24 |
+| 295990 | Ankara | 24 |
+| 289202 | Ankara | 24 |
+| 299422 | Ankara | 24 |
+| 292571 | Ankara | 24 |
+| 302804 | Ankara | 24 |
+| 306330 | Atlanta | 28 |
+| 299419 | Atlanta | 24 |
+| 292568 | Atlanta | 24 |
+| 289199 | Atlanta | 24 |
+| 302801 | Atlanta | 24 |
+| 295987 | Atlanta | 24 |
+| 306351 | Austin | 24 |
+| 296015 | Austin | 24 |
+| 302822 | Austin | 24 |
+| 299440 | Austin | 24 |
+| 296004 | Beijing | 24 |
+| 292585 | Beijing | 24 |
+| 299436 | Beijing | 24 |
+| 306347 | Beijing | 24 |
+| 302818 | Beijing | 24 |
+| 306321 | Buenos Aires | 24 |
+| 295978 | Buenos Aires | 24 |
+| 302792 | Buenos Aires | 24 |
+| 289190 | Buenos Aires | 24 |
+| _(+179 more)_ | | |

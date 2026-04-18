@@ -343,6 +343,12 @@ def compute_l2_fill_metrics(
 
     filled = np.array([r["filled"] for r in l2_results], dtype=bool)
     n_fills = int(filled.sum())
+    # "Covered" = signal had L2 book data (at least one snapshot observed).
+    # Distinguishes PMXT data absence from real unfilled orders.
+    covered = np.array(
+        [r.get("snapshots_observed", 0) > 0 for r in l2_results], dtype=bool
+    )
+    n_covered = int(covered.sum())
 
     # For filled trades, compute P&L
     gross_pnl = directions * price_changes * CONTRACTS
@@ -406,8 +412,11 @@ def compute_l2_fill_metrics(
 
     return {
         "n_signals": n,
+        "n_covered": n_covered,
+        "coverage_rate": n_covered / n if n > 0 else 0.0,
         "n_fills": n_fills,
         "fill_rate": n_fills / n if n > 0 else 0.0,
+        "fill_rate_covered": n_fills / n_covered if n_covered > 0 else 0.0,
         "mean_pnl_per_fill": mean_pnl,
         "total_pnl": total_pnl,
         "win_rate": win_rate,
@@ -427,14 +436,24 @@ def stratify_by_market(
     df: pl.DataFrame,
     l2_results: list[dict],
 ) -> pl.DataFrame:
-    """Compute fill rate and metrics stratified by event_id."""
+    """Compute fill rate and metrics stratified by event_id.
+
+    Distinguishes covered (had L2 snapshots) from uncovered signals so the
+    bottom of the table isn't ambiguous about data absence vs genuine 0% fill.
+    """
     filled_col = [r["filled"] for r in l2_results]
-    df_with_fills = df.with_columns(pl.Series("l2_filled", filled_col))
+    covered_col = [r.get("snapshots_observed", 0) > 0 for r in l2_results]
+    df_with_fills = df.with_columns(
+        pl.Series("l2_filled", filled_col),
+        pl.Series("l2_covered", covered_col),
+    )
 
     market_stats = df_with_fills.group_by("event_id", "city").agg(
         pl.len().alias("n_signals"),
+        pl.col("l2_covered").sum().alias("n_covered"),
         pl.col("l2_filled").sum().alias("n_fills"),
         pl.col("l2_filled").mean().alias("fill_rate"),
+        pl.col("l2_covered").mean().alias("coverage_rate"),
     ).sort("fill_rate", descending=True)
 
     return market_stats
@@ -486,20 +505,52 @@ def format_comparison_table(
 ) -> str:
     """Format the side-by-side comparison as markdown."""
     lines = []
-    lines.append("# L2 Fill Simulator Backtest Comparison (pm-gy0.4)")
+    lines.append("# L2 Fill Simulator Backtest Comparison (pm-gy0.8)")
     lines.append("")
     lines.append("**Apples-to-apples**: same 5,532 TPP signals, same exit rules.")
     lines.append("**Only change**: fill model swapped from statistical → L2 order book.")
+    lines.append("")
+
+    # Coverage (data availability, NOT fill outcome)
+    n_sig = l2_metrics["n_signals"]
+    n_cov = l2_metrics["n_covered"]
+    cov_rate = l2_metrics["coverage_rate"]
+    n_fills = l2_metrics["n_fills"]
+    fill_rate_cov = l2_metrics["fill_rate_covered"]
+    lines.append("## Coverage (PMXT L2 data availability)")
+    lines.append("")
+    lines.append(
+        f"- **Signals with L2 book data:** {n_cov:,} / {n_sig:,} = "
+        f"**{cov_rate*100:.1f}%**"
+    )
+    lines.append(
+        f"- **Signals without L2 data:** {n_sig - n_cov:,} "
+        f"(PMXT hourly parquets missing for those hours — not unfilled orders)"
+    )
+    lines.append(
+        f"- **Fills on covered signals:** {n_fills:,} / {n_cov:,} = "
+        f"**{fill_rate_cov*100:.1f}%** (true L2 fill rate when data is present)"
+    )
+    lines.append("")
+    lines.append(
+        "All L2 metrics below are computed on the covered subset. "
+        "Uncovered signals cannot be evaluated and are excluded from P&L, CI, hit rate, "
+        "etc. (they are not \"unfilled\" — the data is simply absent)."
+    )
     lines.append("")
 
     # Headline: does per-trade P&L CI exclude zero?
     ci_low = l2_metrics["ci_low"]
     ci_high = l2_metrics["ci_high"]
     excludes_zero = ci_low > 0 or ci_high < 0
-    ci_verdict = "YES" if excludes_zero else "NO"
+    sign_hint = ""
+    if excludes_zero:
+        sign_hint = " (NEGATIVE)" if ci_high < 0 else " (POSITIVE)"
+    ci_verdict = ("YES" + sign_hint) if excludes_zero else "NO"
     lines.append(f"## Headline: Per-trade P&L 95% CI excludes zero? **{ci_verdict}**")
     lines.append(f"  - CI: [{ci_low:.4f}, {ci_high:.4f}]")
     lines.append(f"  - Mean P&L per filled trade: {l2_metrics['mean_pnl_per_fill']:.4f}")
+    lines.append(f"  - Based on {n_fills:,} filled trades drawn from {n_cov:,} covered signals ({cov_rate*100:.1f}% of 5,532).")
     lines.append("")
 
     # Side-by-side table: old regimes vs L2
@@ -511,7 +562,7 @@ def format_comparison_table(
     metrics_keys = [
         ("n_signals", "Signals", "{:.0f}"),
         ("n_fills", "Fills", "{:.1f}"),
-        ("fill_rate", "Fill Rate", "{:.3f}"),
+        ("fill_rate", "Fill Rate (of all)", "{:.3f}"),
         ("mean_pnl_per_fill", "Mean P&L/Fill", "{:.4f}"),
         ("total_pnl", "Total P&L", "{:.2f}"),
         ("win_rate", "Win Rate", "{:.3f}"),
@@ -526,7 +577,14 @@ def format_comparison_table(
         l2_v = fmt.format(l2_metrics.get(key, 0))
         lines.append(f"| {label} | {vals[0]} | {vals[1]} | {vals[2]} | **{l2_v}** |")
 
-    # Bootstrap CI (L2 only)
+    # Coverage-aware L2 rows
+    lines.append(
+        f"| Signals w/ L2 data | - | - | - | **{l2_metrics['n_covered']}** |"
+    )
+    lines.append(
+        f"| Fill Rate (of covered) | - | - | - | "
+        f"**{l2_metrics['fill_rate_covered']:.3f}** |"
+    )
     lines.append(f"| P&L 95% CI | - | - | - | **[{ci_low:.4f}, {ci_high:.4f}]** |")
     lines.append("")
 
@@ -540,26 +598,53 @@ def format_comparison_table(
         lines.append(f"| {dt_s}s | {v:.6f} |")
     lines.append("")
 
-    # Market stratification
-    lines.append("## Fill Rate by Market (Top 10 / Bottom 10)")
+    # Market stratification — covered events only (excluding data gaps)
+    lines.append("## Fill Rate by Market")
     lines.append("")
-    lines.append("### Highest Fill Rate")
-    lines.append("| Event | City | Signals | Fills | Fill Rate |")
-    lines.append("|-------|------|---------|-------|-----------|")
-    for row in market_stats.head(10).iter_rows(named=True):
+    covered_events = market_stats.filter(pl.col("n_covered") > 0)
+    uncovered_events = market_stats.filter(pl.col("n_covered") == 0)
+    lines.append(
+        f"_{covered_events.height} events had L2 coverage; "
+        f"{uncovered_events.height} events had NO PMXT data (listed separately)._"
+    )
+    lines.append("")
+
+    lines.append("### Top 10 Covered Events by Fill Rate")
+    lines.append("| Event | City | Signals | Covered | Fills | Fill Rate (of covered) |")
+    lines.append("|-------|------|---------|---------|-------|------------------------|")
+    for row in covered_events.head(10).iter_rows(named=True):
+        rate = row["n_fills"] / row["n_covered"] if row["n_covered"] else 0.0
         lines.append(
             f"| {row['event_id']} | {row['city']} | {row['n_signals']} "
-            f"| {row['n_fills']} | {row['fill_rate']:.3f} |"
+            f"| {row['n_covered']} | {row['n_fills']} | {rate:.3f} |"
         )
     lines.append("")
-    lines.append("### Lowest Fill Rate")
-    lines.append("| Event | City | Signals | Fills | Fill Rate |")
-    lines.append("|-------|------|---------|-------|-----------|")
-    for row in market_stats.sort("fill_rate").head(10).iter_rows(named=True):
+
+    lines.append("### Bottom 10 Covered Events by Fill Rate")
+    lines.append("| Event | City | Signals | Covered | Fills | Fill Rate (of covered) |")
+    lines.append("|-------|------|---------|---------|-------|------------------------|")
+    for row in covered_events.sort("fill_rate").head(10).iter_rows(named=True):
+        rate = row["n_fills"] / row["n_covered"] if row["n_covered"] else 0.0
         lines.append(
             f"| {row['event_id']} | {row['city']} | {row['n_signals']} "
-            f"| {row['n_fills']} | {row['fill_rate']:.3f} |"
+            f"| {row['n_covered']} | {row['n_fills']} | {rate:.3f} |"
         )
+    lines.append("")
+
+    lines.append(
+        f"### Events with NO PMXT Coverage ({uncovered_events.height})"
+    )
+    lines.append("_These had zero L2 snapshots — data absence, not 0% fill._")
+    lines.append("")
+    if uncovered_events.height > 0:
+        lines.append("| Event | City | Signals |")
+        lines.append("|-------|------|---------|")
+        for row in uncovered_events.sort("city").head(25).iter_rows(named=True):
+            lines.append(
+                f"| {row['event_id']} | {row['city']} | {row['n_signals']} |"
+            )
+        if uncovered_events.height > 25:
+            lines.append(f"| _(+{uncovered_events.height - 25} more)_ | | |")
     lines.append("")
 
     return "\n".join(lines)
@@ -602,6 +687,20 @@ def main():
     print("Step 1: Loading signals...", flush=True)
     df = pl.read_parquet(args.signals)
     print(f"  {len(df):,} signals, {df['event_id'].n_unique()} events", flush=True)
+    ts_min_ms = int(df["timestamp_ms"].min())
+    ts_max_ms = int(df["timestamp_ms"].max())
+    ts_min_dt = datetime.fromtimestamp(ts_min_ms / 1000, tz=timezone.utc)
+    ts_max_dt = datetime.fromtimestamp(ts_max_ms / 1000, tz=timezone.utc)
+    print(
+        f"  Time range: {ts_min_dt.isoformat()} (epoch_ms={ts_min_ms}) "
+        f"to {ts_max_dt.isoformat()} (epoch_ms={ts_max_ms})",
+        flush=True,
+    )
+    if ts_min_dt.year != 2026 or ts_max_dt.year != 2026:
+        raise RuntimeError(
+            f"TIMESTAMP SANITY FAIL: signals span {ts_min_dt.year}-{ts_max_dt.year}, "
+            f"expected 2026. Refusing to run — fix signals.parquet first."
+        )
 
     # -----------------------------------------------------------------------
     # Step 2: Build event_id+suit → conditionId mapping
@@ -700,7 +799,12 @@ def main():
                 if not args.skip_download:
                     try:
                         parquet_path = _download_parquet(dt)
-                    except Exception:
+                    except Exception as exc:
+                        print(
+                            f"  WARN: download failed for {dt.isoformat()} "
+                            f"(epoch={int(dt.timestamp())}): {exc}",
+                            flush=True,
+                        )
                         continue
                 else:
                     continue
