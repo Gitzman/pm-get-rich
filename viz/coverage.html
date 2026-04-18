@@ -412,7 +412,7 @@
 
                 renderCategoryFilters();
 
-                statusEl.textContent = `Ready. HF index: ${Object.keys(hfIndex).length.toLocaleString()} markets (end_date ≥ ${idxData.min_end_date}). Temperature markets: ${tempMarkets.length.toLocaleString()}. Select a PMXT date/hour.`;
+                statusEl.textContent = `Ready. HF temperature markets: ${tempMarkets.length.toLocaleString()}, unique condition_ids: ${Object.keys(hfIndex).length.toLocaleString()}. Select a PMXT date/hour.`;
                 statusEl.className = 'ready';
                 loadBtn.disabled = false;
             } catch (e) {
