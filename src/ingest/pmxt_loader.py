@@ -33,7 +33,7 @@ import polars as pl
 PMXT_BASE_URL = "https://r2.pmxt.dev"
 
 # Local cache directory for downloaded files.
-PMXT_CACHE_DIR = Path(tempfile.gettempdir()) / "pmxt_cache"
+PMXT_CACHE_DIR = Path(__file__).resolve().parents[2] / "data" / "pmxt_cache"
 
 
 @dataclass(frozen=True)
